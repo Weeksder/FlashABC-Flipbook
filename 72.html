@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FlashABC - Notebook Flip Card Builder</title>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    width: 100%; height: 100%; overflow: hidden; position: fixed;
+    background: linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 100%);
+    font-family: Arial, sans-serif;
+  }
+
+  .container { max-width: 100%; height: 100%; margin: 0 auto; display: flex; flex-direction: column; }
+  
+  /* Top Bar */
+  .top-bar { 
+    padding: 15px; 
+    display: flex; 
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Landscape: sidebar layout ── */
+  @media (orientation: landscape) {
+    .container {
+      flex-direction: row;
+    }
+    .top-bar {
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 8px;
+      gap: 12px;
+      width: 64px;
+      flex-shrink: 0;
+      border-right: 1px solid rgba(139,111,71,0.15);
+    }
+    .cards-container {
+      flex: 1;
+      width: 0; /* let flex handle it */
+    }
+    /* Stack dropdown below other buttons */
+    .dropdown-content {
+      right: auto;
+      left: 100%;
+      top: 0;
+      margin-top: 0;
+      margin-left: 5px;
+    }
+  }
+
+  /* Case Toggle Button */
+  .case-toggle-btn {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid #8b6f47;
+    background: transparent;
+    color: #8b6f47;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.3s;
+  }
+
+  .case-toggle-btn:hover {
+    background: #8b6f47;
+    color: white;
+  }
+
+  /* Dropdown Menu */
+  .dropdown { position: relative; display: inline-block; }
+  .dropdown-btn {
+    padding: 8px; border: none; border-radius: 8px; font-size: 1.5rem;
+    font-weight: 600; cursor: pointer; transition: all 0.3s;
+    background: transparent; color: #8b6f47; border: 2px solid #8b6f47;
+    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  }
+  .dropdown-btn:hover, .dropdown-btn:active, .dropdown.active .dropdown-btn {
+    background: #8b6f47; color: white;
+  }
+  .dropdown-content {
+    display: none; position: absolute; right: 0; margin-top: 5px;
+    background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    min-width: 160px; z-index: 1100;
+  }
+  .dropdown-content.show { display: block; }
+  .dropdown-content button {
+    display: block; width: 100%; padding: 12px 16px; border: none;
+    background: white; color: #333; font-size: 1rem; font-weight: 600;
+    text-align: left; cursor: pointer; transition: background 0.2s;
+  }
+  .dropdown-content button:first-child { border-radius: 8px 8px 0 0; }
+  .dropdown-content button:last-child { border-radius: 0 0 8px 8px; }
+  .dropdown-content button:hover { background: #f0f0f0; }
+
+  /*
+   * Fluid sizing system — sized to fill the screen like the reference image
+   * Cards are near-square (h ≈ 1.15× w) and large enough to dominate the viewport
+   */
+
+  /* ── Portrait phone (default baseline) — scaled for 4 cards ── */
+  :root {
+    --card-w:          21vw;
+    --card-h:          24vw;
+    --card-font:       12vw;
+    --we-font:         7.5vw;
+    --wide-mult:       2.2;
+    --gap:             0.5vw;
+    --stack-h:         24vw;
+    --wrapper-pad-top: 26vw;
+    --wrapper-pad-x:   2vw;
+    --wrapper-pad-bot: 4vw;
+    --ring-w:          2.4vw;
+    --ring-h:          3.2vw;
+    --ring-gap:        1.4vw;
+    --binding-top:     -2.2vw;
+    --label-bottom:    -3.8vw;
+    --label-font:      2.4vw;
+    --perspective:     100vw;
+  }
+
+  /* ── Landscape phone ── */
+  @media (orientation: landscape) and (max-height: 500px) {
+    :root {
+      --card-w:          26vh;
+      --card-h:          30vh;
+      --card-font:       17vh;
+      --we-font:         11vh;
+      --wide-mult:       2.0;
+      --gap:             0.75vh;
+      --stack-h:         30vh;
+      --wrapper-pad-top: 32vh;
+      --wrapper-pad-x:   1.5vh;
+      --wrapper-pad-bot: 3vh;
+      --ring-w:          2.8vh;
+      --ring-h:          3.8vh;
+      --ring-gap:        1.5vh;
+      --binding-top:     -2.5vh;
+      --label-bottom:    -4vh;
+      --label-font:      2.4vh;
+      --perspective:     120vh;
+    }
+  }
+
+  /* ── Portrait tablet — scaled for 4 cards ── */
+  @media (orientation: portrait) and (min-width: 600px) {
+    :root {
+      --card-w:          21vw;
+      --card-h:          24vw;
+      --card-font:       12vw;
+      --we-font:         7.5vw;
+      --wide-mult:       2.2;
+      --gap:             0.5vw;
+      --stack-h:         24vw;
+      --wrapper-pad-top: 26vw;
+      --wrapper-pad-x:   2vw;
+      --wrapper-pad-bot: 4vw;
+      --ring-w:          2.4vw;
+      --ring-h:          3.2vw;
+      --ring-gap:        1.4vw;
+      --binding-top:     -2.2vw;
+      --label-bottom:    -3.8vw;
+      --label-font:      2.4vw;
+      --perspective:     100vw;
+    }
+  }
+
+  /* ── Landscape tablet (iPad landscape) ── */
+  @media (orientation: landscape) and (min-height: 500px) and (max-width: 1400px) {
+    :root {
+      --card-w:          34vh;
+      --card-h:          39vh;
+      --card-font:       23vh;
+      --we-font:         14vh;
+      --wide-mult:       2.1;
+      --gap:             1vh;
+      --stack-h:         39vh;
+      --wrapper-pad-top: 42vh;
+      --wrapper-pad-x:   2vh;
+      --wrapper-pad-bot: 4vh;
+      --ring-w:          3.5vh;
+      --ring-h:          4.8vh;
+      --ring-gap:        1.8vh;
+      --binding-top:     -3.2vh;
+      --label-bottom:    -5vh;
+      --label-font:      3vh;
+      --perspective:     150vh;
+    }
+  }
+
+  /* ── Large desktop (landscape) ── */
+  @media (orientation: landscape) and (min-width: 1400px) {
+    :root {
+      --card-w:          30vh;
+      --card-h:          34vh;
+      --card-font:       20vh;
+      --we-font:         12.5vh;
+      --wide-mult:       2.1;
+      --gap:             1vh;
+      --stack-h:         34vh;
+      --wrapper-pad-top: 37vh;
+      --wrapper-pad-x:   2vh;
+      --wrapper-pad-bot: 4vh;
+      --ring-w:          3.2vh;
+      --ring-h:          4.2vh;
+      --ring-gap:        1.6vh;
+      --binding-top:     -2.8vh;
+      --label-bottom:    -4.5vh;
+      --label-font:      2.8vh;
+      --perspective:     140vh;
+    }
+  }
+
+  /* Cards Container */
+  .cards-container { 
+    position: relative; width: 100%; flex: 1; 
+    display: flex; flex-direction: column; justify-content: center; 
+    padding: 2vmin;
+  }
+  
+  .cards-wrapper { 
+    display: flex;
+    gap: var(--gap);
+    justify-content: center;
+    align-items: flex-start;
+    position: relative;
+    background: rgba(210, 180, 140, 0.3);
+    padding: var(--wrapper-pad-top) var(--wrapper-pad-x) var(--wrapper-pad-bot);
+    border-radius: 15px;
+    max-width: fit-content;
+    margin: 0 auto;
+    overflow: visible;
+  }
+
+  /* Individual Card Scene */
+  .card-scene {
+    perspective: var(--perspective);
+    perspective-origin: 50% 0%;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    overflow: visible;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Preview card */
+  .preview-card {
+    position: absolute;
+    top: 0; left: 0;
+    width: var(--card-w);
+    height: var(--card-h);
+    background: #fff8ee;
+    border: 2px solid #c8b89a;
+    border-radius: 6px 6px 10px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--card-font);
+    font-weight: 600;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Sans', 'Marker Felt', cursive, sans-serif;
+    z-index: 1;
+  }
+
+  .preview-card.wide {
+    width: calc(var(--card-w) * var(--wide-mult));
+  }
+
+  .preview-card.consonant { color: #3b82f6; }
+  .preview-card.vowel     { color: #ef4444; }
+  .preview-card.word-ending { font-size: var(--we-font); color: #f59e0b; }
+
+  /* Stacked flipped cards */
+  .flipped-stack {
+    position: absolute;
+    top: calc(-1 * var(--stack-h));
+    left: 0;
+    width: var(--card-w);
+    height: var(--stack-h);
+    pointer-events: auto;
+    z-index: 10;
+    cursor: pointer;
+  }
+
+  .flipped-stack.wide {
+    width: calc(var(--card-w) * var(--wide-mult));
+  }
+
+  .flipped-card {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff8ee;
+    border: 2px solid #c8b89a;
+    border-radius: 6px 6px 10px 10px;
+  }
+
+  .notebook {
+    position: relative;
+    width: var(--card-w);
+    height: var(--card-h);
+    transform-origin: top center;
+    transform-style: preserve-3d;
+    z-index: 5;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+
+  .notebook.wide {
+    width: calc(var(--card-w) * var(--wide-mult));
+  }
+
+  /* Faces */
+  .face {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px 6px 10px 10px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--card-font);
+    font-weight: 600;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Sans', 'Marker Felt', cursive, sans-serif;
+  }
+
+  .face-front {
+    background: #fff8ee;
+    border: 2px solid #c8b89a;
+  }
+
+  .face-back {
+    background: #eef4ff;
+    border: 2px solid #a0b4d0;
+    transform: rotateX(180deg);
+    opacity: 0;
+  }
+
+  /* Color Coding */
+  .consonant .face-front, .consonant .face-back { color: #3b82f6; }
+  .vowel .face-front, .vowel .face-back         { color: #ef4444; }
+  .word-ending .face-front, .word-ending .face-back { font-size: var(--we-font); color: #f59e0b; }
+
+  /* Binding Rings */
+  .binding {
+    position: absolute;
+    top: var(--binding-top);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: var(--ring-gap);
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .ring {
+    width: var(--ring-w);
+    height: var(--ring-h);
+    border: 2.5px solid #8b6f47;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: transparent;
+    position: relative;
+  }
+
+  .ring::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 2px; right: 2px;
+    height: 40%;
+    border: 2px solid #a0885f;
+    border-top: none;
+    border-radius: 0 0 50% 50%;
+  }
+
+  /* Card Label */
+  .card-label {
+    position: absolute;
+    bottom: var(--label-bottom);
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: var(--label-font);
+    font-weight: 700;
+    color: #8b6f47;
+    text-align: center;
+    white-space: nowrap;
+    font-family: Arial, sans-serif;
+  }
+
+  /* Flipped state */
+  .notebook.flipped {
+    transform: rotateX(180deg);
+  }
+
+  /* Flying card */
+  .flying-card {
+    position: absolute;
+    left: 0;
+    width: var(--card-w);
+    background: #fff8ee;
+    border: 2px solid #c8b89a;
+    border-radius: 6px 6px 10px 10px;
+    z-index: 50;
+    pointer-events: none;
+    transform-origin: top center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .flying-card.wide {
+    width: calc(var(--card-w) * var(--wide-mult));
+  }
+
+  .fly-letter {
+    font-size: var(--card-font);
+    font-weight: 600;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Sans', 'Marker Felt', cursive, sans-serif;
+  }
+
+  .flying-card.consonant .fly-letter  { color: #3b82f6; }
+  .flying-card.vowel .fly-letter      { color: #ef4444; }
+  .flying-card.word-ending .fly-letter { font-size: var(--we-font); color: #f59e0b; }
+
+  /* ── Settings gear ── */
+  .settings-dropdown { position: relative; display: inline-block; }
+
+  .settings-btn {
+    width: 44px; height: 44px;
+    border: 2px solid #8b6f47;
+    border-radius: 8px;
+    background: transparent;
+    color: #8b6f47;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
+  .settings-btn:hover, .settings-dropdown.open .settings-btn {
+    background: #8b6f47; color: white;
+  }
+  .settings-btn svg { pointer-events: none; }
+
+  .settings-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+    min-width: 210px;
+    z-index: 1100;
+    padding: 8px 0 10px;
+    overflow: hidden;
+  }
+  .settings-dropdown.open .settings-panel { display: block; }
+
+  /* In landscape sidebar, open to the right */
+  @media (orientation: landscape) {
+    .settings-panel {
+      top: 0;
+      left: calc(100% + 6px);
+    }
+  }
+
+  .settings-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #a0885f;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 6px 16px 10px;
+    border-bottom: 1px solid #f0e8d8;
+    margin-bottom: 4px;
+  }
+
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    gap: 16px;
+  }
+
+  .settings-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #5a4a32;
+    white-space: nowrap;
+  }
+
+  .settings-toggle-btn {
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 16px;
+    border: 2px solid #8b6f47;
+    background: transparent;
+    color: #8b6f47;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    min-width: 52px;
+    text-align: center;
+  }
+  .settings-toggle-btn:hover { background: #f5ece0; }
+  .settings-toggle-btn.active {
+    background: #8b6f47;
+    color: white;
+  }
+
+  /* Photo card scene — same dimensions as a regular card */
+  .photo-card-scene {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Slide in/out animation */
+    overflow: visible;
+  }
+
+  .photo-card {
+    width: var(--card-w);
+    height: var(--card-h);
+    background: #f0f4f0;
+    border: 2px dashed #a0b49a;
+    border-radius: 6px 6px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    color: #7a9a74;
+    cursor: default;
+    user-select: none;
+  }
+
+  .photo-card-plus {
+    font-size: calc(var(--card-font) * 0.55);
+    font-weight: 300;
+    line-height: 1;
+    color: #7a9a74;
+  }
+
+  .photo-card-label-inner {
+    font-size: calc(var(--label-font) * 0.85);
+    font-weight: 600;
+    color: #7a9a74;
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+
+  .photo-card-label {
+    position: absolute;
+    bottom: var(--label-bottom);
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: var(--label-font);
+    font-weight: 700;
+    color: #8b6f47;
+    text-align: center;
+    white-space: nowrap;
+    font-family: Arial, sans-serif;
+  }
+
+  /* Slide-in animation when photo card appears */
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px) scale(0.92); }
+    to   { opacity: 1; transform: translateX(0)    scale(1); }
+  }
+  @keyframes slideOutRight {
+    from { opacity: 1; transform: translateX(0)    scale(1); }
+    to   { opacity: 0; transform: translateX(20px) scale(0.92); }
+  }
+  .photo-card-scene.entering { animation: slideInRight 0.25s ease-out forwards; }
+  .photo-card-scene.exiting  { animation: slideOutRight 0.2s ease-in forwards; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <!-- Settings gear -->
+      <div class="settings-dropdown" id="settingsDropdown">
+        <button class="settings-btn" onclick="toggleSettings()" aria-label="Settings">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+        <div class="settings-panel" id="settingsPanel">
+          <div class="settings-title">Settings</div>
+
+          <!-- Case toggle row -->
+          <div class="settings-row">
+            <span class="settings-label">Letter Case</span>
+            <button class="settings-toggle-btn" id="caseToggleBtn" onclick="toggleCase()">aa</button>
+          </div>
+
+          <!-- Photo card row -->
+          <div class="settings-row">
+            <span class="settings-label">Photo Card</span>
+            <button class="settings-toggle-btn" id="photoToggleBtn" onclick="togglePhotoCard()">Off</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Existing mode/reset dropdown -->
+      <div class="dropdown">
+        <button class="dropdown-btn" onclick="toggleDropdown()">⋯</button>
+        <div class="dropdown-content" id="dropdownContent">
+          <button onclick="handleMenuItem('cvc')">CVC</button>
+          <button onclick="handleMenuItem('short-a')">Short Vowel "a"</button>
+          <button onclick="handleMenuItem('reset')">Reset All</button>
+          <button onclick="handleMenuItem('about')">About</button>
+        </div>
+      </div>
+    </div>
+    <div class="cards-container">
+      <div class="cards-wrapper" id="cardsWrapper"></div>
+    </div>
+  </div>
+
+  <script>
+    const consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'];
+    const vowels = ['a', 'e', 'i', 'o', 'u'];
+    
+    // Case toggle functionality
+    const CASE_MODES = ['lower', 'UPPER', 'Sentence'];
+    let currentCaseMode = 0;
+
+    function applyCaseTransform(text) {
+      const mode = CASE_MODES[currentCaseMode];
+      if (mode === 'lower') {
+        return text.toLowerCase();
+      } else if (mode === 'UPPER') {
+        return text.toUpperCase();
+      } else if (mode === 'Sentence') {
+        return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+      }
+      return text;
+    }
+
+    function toggleSettings() {
+      const sd = document.getElementById('settingsDropdown');
+      sd.classList.toggle('open');
+    }
+
+    function toggleCase() {
+      currentCaseMode = (currentCaseMode + 1) % CASE_MODES.length;
+      updateCaseButton();
+      renderCards();
+    }
+
+    function updateCaseButton() {
+      const btn = document.getElementById('caseToggleBtn');
+      const labels = ['aa', 'AA', 'Aa'];
+      btn.textContent = labels[currentCaseMode];
+    }
+    
+    let gameState = {
+      mode: 'cvc',
+      cards: [
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] },
+        { type: 'vowel', letters: vowels, currentIndex: 0, label: 'Vowel', flippedCards: [] },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] }
+      ]
+    };
+
+    let photoCardVisible = false;
+
+    function togglePhotoCard() {
+      const btn = document.getElementById('photoToggleBtn');
+      const wrapper = document.getElementById('cardsWrapper');
+
+      if (!photoCardVisible) {
+        photoCardVisible = true;
+        btn.textContent = 'On';
+        btn.classList.add('active');
+        appendPhotoCard(wrapper, true);
+      } else {
+        const existing = wrapper.querySelector('.photo-card-scene');
+        if (existing) {
+          existing.classList.remove('entering');
+          existing.classList.add('exiting');
+          setTimeout(() => { if (existing.parentNode) existing.parentNode.removeChild(existing); }, 200);
+        }
+        photoCardVisible = false;
+        btn.textContent = 'Off';
+        btn.classList.remove('active');
+      }
+    }
+
+    function appendPhotoCard(wrapper, animate) {
+      const scene = document.createElement('div');
+      scene.className = 'photo-card-scene' + (animate ? ' entering' : '');
+
+      const card = document.createElement('div');
+      card.className = 'photo-card';
+
+      const plus = document.createElement('div');
+      plus.className = 'photo-card-plus';
+      plus.textContent = '+';
+
+      const inner = document.createElement('div');
+      inner.className = 'photo-card-label-inner';
+      inner.textContent = 'Photo';
+
+      card.appendChild(plus);
+      card.appendChild(inner);
+
+      const label = document.createElement('div');
+      label.className = 'photo-card-label';
+      label.textContent = 'Image';
+
+      scene.appendChild(card);
+      scene.appendChild(label);
+      wrapper.appendChild(scene);
+    }
+
+    function toggleDropdown() {
+      const dropdown = document.querySelector('.dropdown');
+      const content = document.getElementById('dropdownContent');
+      content.classList.toggle('show');
+      dropdown.classList.toggle('active');
+    }
+
+    function handleMenuItem(action) {
+      const dropdown = document.querySelector('.dropdown');
+      const content = document.getElementById('dropdownContent');
+      content.classList.remove('show');
+      dropdown.classList.remove('active');
+      
+      switch(action) {
+        case 'cvc':
+          setCVCMode();
+          break;
+        case 'short-a':
+          setShortVowelA();
+          break;
+        case 'reset':
+          resetAllCards();
+          break;
+        case 'about':
+          alert('FlashABC - Notebook Flip Card Builder\nVersion 1.0\n\nClick cards to flip through letters!');
+          break;
+      }
+    }
+
+    function setCVCMode() {
+      gameState.mode = 'cvc';
+      gameState.cards = [
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] },
+        { type: 'vowel', letters: vowels, currentIndex: 0, label: 'Vowel', flippedCards: [] },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] }
+      ];
+      renderCards();
+    }
+
+    function setShortVowelA() {
+      gameState.mode = 'short-a';
+      gameState.cards = [
+        { type: 'consonant', letters: ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'], currentIndex: 0, label: 'Letter', flippedCards: [] },
+        { type: 'word-ending', letters: ['am', 'ad', 'at', 'an', 'ap', 'ab', 'ack', 'ant', 'ang', 'ank', 'amp'], currentIndex: 0, label: 'Word Ending', isWide: true, flippedCards: [] }
+      ];
+      renderCards();
+    }
+
+    function resetAllCards() {
+      gameState.cards.forEach(card => {
+        card.currentIndex = 0;
+        card.flippedCards = [];
+      });
+      renderCards();
+    }
+
+    function renderCards() {
+      const wrapper = document.getElementById('cardsWrapper');
+      wrapper.innerHTML = '';
+
+      gameState.cards.forEach((cardData, cardIndex) => {
+        const scene = document.createElement('div');
+        scene.className = 'card-scene';
+        
+        // Binding rings
+        const binding = document.createElement('div');
+        binding.className = 'binding';
+        binding.innerHTML = '<div class="ring"></div><div class="ring"></div><div class="ring"></div><div class="ring"></div>';
+        
+        // Container for stacked flipped cards
+        const flippedStack = document.createElement('div');
+        flippedStack.className = 'flipped-stack';
+        if (cardData.isWide) flippedStack.classList.add('wide');
+        
+        // Add all previously flipped cards to the stack
+        if (cardData.flippedCards && cardData.flippedCards.length > 0) {
+          cardData.flippedCards.forEach((letter, index) => {
+            const flippedCard = document.createElement('div');
+            flippedCard.className = 'flipped-card';
+            if (cardData.isWide) {
+              flippedCard.classList.add('wide');
+            }
+            // No text content - just blank card
+            flippedCard.style.zIndex = 100 + index;
+            flippedStack.appendChild(flippedCard);
+          });
+        }
+        
+        const letters = cardData.letters;
+        const currentIndex = cardData.currentIndex;
+        const nextIndex = (currentIndex + 1) % letters.length;
+        
+        // Preview card (shows next letter underneath)
+        const previewCard = document.createElement('div');
+        previewCard.className = `preview-card ${cardData.type}`;
+        if (cardData.isWide) {
+          previewCard.classList.add('wide');
+        }
+        previewCard.textContent = applyCaseTransform(letters[nextIndex]);
+        
+        // Notebook (current active card)
+        const notebook = document.createElement('div');
+        notebook.className = `notebook ${cardData.type}`;
+        if (cardData.isWide) {
+          notebook.classList.add('wide');
+        }
+        
+        // Front face (current letter)
+        const faceFront = document.createElement('div');
+        faceFront.className = 'face face-front';
+        faceFront.textContent = applyCaseTransform(letters[currentIndex]);
+        
+        // Back face (next letter)
+        const faceBack = document.createElement('div');
+        faceBack.className = 'face face-back';
+        faceBack.textContent = applyCaseTransform(letters[nextIndex]);
+        
+        notebook.appendChild(faceFront);
+        notebook.appendChild(faceBack);
+        
+        // Label
+        const label = document.createElement('div');
+        label.className = 'card-label';
+        label.textContent = cardData.label;
+        
+        scene.appendChild(flippedStack);
+        scene.appendChild(binding);
+        scene.appendChild(previewCard);
+        scene.appendChild(notebook);
+        scene.appendChild(label);
+        
+        // Click on flipped stack to go backwards
+        flippedStack.onclick = (e) => {
+          e.stopPropagation();
+          if (cardData.flippedCards && cardData.flippedCards.length > 0) {
+            flipCardBackward(cardIndex);
+          }
+        };
+        
+        // Touch on flipped stack for mobile
+        flippedStack.addEventListener('touchstart', (e) => {
+          e.stopPropagation(); // prevent scene touchstart from treating this as a forward-flip gesture
+        });
+
+        flippedStack.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (cardData.flippedCards && cardData.flippedCards.length > 0) {
+            flipCardBackward(cardIndex);
+          }
+        });
+        
+        // Touch/Swipe handling
+        let touchStartY = 0;
+        let touchEndY = 0;
+        let isSwiping = false;
+        let touchStartedOnStack = false;
+        
+        scene.addEventListener('touchstart', (e) => {
+          touchStartedOnStack = flippedStack.contains(e.target);
+          touchStartY = e.touches[0].clientY;
+          isSwiping = false;
+        });
+        
+        scene.addEventListener('touchmove', (e) => {
+          isSwiping = true;
+        });
+        
+        scene.addEventListener('touchend', (e) => {
+          if (touchStartedOnStack) return; // handled by flippedStack listener
+          touchEndY = e.changedTouches[0].clientY;
+          
+          if (isSwiping) {
+            handleSwipe(cardIndex, notebook, touchStartY, touchEndY);
+          } else {
+            // Single tap without swipe - flip forward
+            e.preventDefault();
+            flipCardForward(cardIndex, notebook);
+          }
+        });
+        
+        // Click to flip forward (for desktop)
+        scene.onclick = (e) => {
+          if (!e.defaultPrevented) {
+            flipCardForward(cardIndex, notebook);
+          }
+        };
+        
+        wrapper.appendChild(scene);
+      });
+
+      // Re-append photo card if it's toggled on (no animation on re-render)
+      if (photoCardVisible) {
+        appendPhotoCard(wrapper, false);
+      }
+    }
+
+    function handleSwipe(cardIndex, notebook, startY, endY) {
+      const swipeDistance = startY - endY;
+      const minSwipeDistance = 50;
+      
+      if (Math.abs(swipeDistance) > minSwipeDistance) {
+        if (swipeDistance > 0) {
+          // Swipe up - go forward
+          flipCardForward(cardIndex, notebook);
+        } else {
+          // Swipe down - go backward
+          flipCardBackward(cardIndex);
+        }
+      }
+    }
+
+    let lastFlipTime = 0;
+    // Track which cards are mid-animation to prevent double-taps
+    const animatingCards = new Set();
+
+    // ── Smooth rAF-driven arc animation ──────────────────────────────────────
+    // Easing: ease-in-out sine — slow start, fast through binding, slow landing
+    function easeInOutSine(t) {
+      return -(Math.cos(Math.PI * t) - 1) / 2;
+    }
+
+    // Animate a flying card rotating around transform-origin:top center.
+    // fromDeg → toDeg over durationMs.
+    // onFrame(currentDeg) called each frame; onDone() called when finished.
+    function animateFlyCard(flyCard, fromDeg, toDeg, durationMs, onFrame, onDone) {
+      const startTime = performance.now();
+      function frame(now) {
+        const elapsed = now - startTime;
+        const rawT = Math.min(elapsed / durationMs, 1);
+        const easedT = easeInOutSine(rawT);
+        const deg = fromDeg + (toDeg - fromDeg) * easedT;
+        flyCard.style.transform = `rotateX(${deg}deg)`;
+        onFrame(deg);
+        if (rawT < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          onDone();
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function makeFlyCard(card, cardH, letter) {
+      const flyCard = document.createElement('div');
+      flyCard.className = `flying-card ${card.type}`;
+      if (card.isWide) flyCard.classList.add('wide');
+      flyCard.style.height = cardH + 'px';
+      flyCard.style.top = '0px';
+
+      // Letter label inside — shown/hidden based on angle in the rAF loop
+      const letterEl = document.createElement('span');
+      letterEl.className = 'fly-letter';
+      letterEl.textContent = letter ? applyCaseTransform(letter) : '';
+      flyCard.appendChild(letterEl);
+
+      return flyCard;
+    }
+
+    function flipCardForward(cardIndex, notebook) {
+      if (animatingCards.has(cardIndex)) return;
+      animatingCards.add(cardIndex);
+
+      const card = gameState.cards[cardIndex];
+      const currentLetter = card.letters[card.currentIndex];
+      const nextIndex = (card.currentIndex + 1) % card.letters.length;
+      const nextLetter = card.letters[nextIndex];
+      const afterNextIndex = (nextIndex + 1) % card.letters.length;
+      const afterNextLetter = card.letters[afterNextIndex];
+      const scene = notebook.closest('.card-scene');
+      const cardH = notebook.offsetHeight;
+
+      // Pre-update the static scene to its post-flip state so renderCards()
+      // causes zero visible snap when the flying card lands
+      const previewCard = scene.querySelector('.preview-card');
+      const faceFront   = scene.querySelector('.face-front');
+      if (faceFront)   faceFront.textContent   = applyCaseTransform(nextLetter);
+      if (previewCard) previewCard.textContent = applyCaseTransform(afterNextLetter);
+
+      // Forward: show letter below binding (0→90°), hide above (90→180°)
+      const flyCard = makeFlyCard(card, cardH, currentLetter);
+      const letterEl = flyCard.querySelector('.fly-letter');
+      flyCard.style.transform = 'rotateX(0deg)';
+      scene.appendChild(flyCard);
+
+      animateFlyCard(flyCard, 0, 180, 380, (deg) => {
+        // Hide letter once card passes the binding (90°)
+        letterEl.style.visibility = deg < 90 ? 'visible' : 'hidden';
+      }, () => {
+        if (flyCard.parentNode) flyCard.parentNode.removeChild(flyCard);
+
+        if (!card.flippedCards) card.flippedCards = [];
+        card.flippedCards.push(currentLetter);
+        card.currentIndex = (card.currentIndex + 1) % card.letters.length;
+        if (card.currentIndex === 0) card.flippedCards = [];
+
+        animatingCards.delete(cardIndex);
+        renderCards();
+      });
+    }
+
+    function flipCardBackward(cardIndex) {
+      if (animatingCards.has(cardIndex)) return;
+      const card = gameState.cards[cardIndex];
+      if (!card.flippedCards || card.flippedCards.length === 0) return;
+
+      animatingCards.add(cardIndex);
+
+      const wrapper = document.getElementById('cardsWrapper');
+      const scenes = wrapper.querySelectorAll('.card-scene');
+      const scene = scenes[cardIndex];
+      const notebook = scene ? scene.querySelector('.notebook') : null;
+
+      if (notebook && scene) {
+        const cardH = notebook.offsetHeight;
+
+        const returningLetter = card.flippedCards[card.flippedCards.length - 1];
+
+        // Scene stays completely frozen during the animation.
+        // Only update state + re-render once the card has fully landed.
+        const flyCard = makeFlyCard(card, cardH, returningLetter);
+        const letterEl = flyCard.querySelector('.fly-letter');
+        letterEl.style.visibility = 'hidden';
+        flyCard.style.transform = 'rotateX(180deg)';
+        scene.appendChild(flyCard);
+
+        animateFlyCard(flyCard, 180, 0, 320, (deg) => {
+          letterEl.style.visibility = deg < 90 ? 'visible' : 'hidden';
+        }, () => {
+          if (flyCard.parentNode) flyCard.parentNode.removeChild(flyCard);
+
+          const lastFlipped = card.flippedCards.pop();
+          const letterIndex = card.letters.indexOf(lastFlipped);
+          if (letterIndex !== -1) card.currentIndex = letterIndex;
+
+          animatingCards.delete(cardIndex);
+          renderCards();
+        });
+      } else {
+        const lastFlipped = card.flippedCards.pop();
+        const letterIndex = card.letters.indexOf(lastFlipped);
+        if (letterIndex !== -1) card.currentIndex = letterIndex;
+        animatingCards.delete(cardIndex);
+        renderCards();
+      }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.dropdown')) {
+        document.getElementById('dropdownContent').classList.remove('show');
+        document.querySelector('.dropdown').classList.remove('active');
+      }
+      if (!event.target.closest('.settings-dropdown')) {
+        document.getElementById('settingsDropdown').classList.remove('open');
+      }
+    });
+
+    document.addEventListener('touchend', function(event) {
+      if (!event.target.closest('.dropdown')) {
+        document.getElementById('dropdownContent').classList.remove('show');
+        document.querySelector('.dropdown').classList.remove('active');
+      }
+      if (!event.target.closest('.settings-dropdown')) {
+        document.getElementById('settingsDropdown').classList.remove('open');
+      }
+    });
+
+    // Initial render
+    renderCards();
+  </script>
+</body>
+</html>
