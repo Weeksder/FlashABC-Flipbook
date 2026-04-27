@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FlashABC - Notebook Flip Card Builder</title>
 
+
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -114,6 +115,7 @@
     --card-font:       12vw;
     --we-font:         7.5vw;
     --wide-mult:       2.2;
+    --narrow-mult:     0.65;
     --gap:             0.5vw;
     --stack-h:         24vw;
     --wrapper-pad-top: 26vw;
@@ -313,6 +315,10 @@
     width: calc(var(--card-w) * var(--wide-mult));
   }
 
+  .preview-card.narrow {
+    width: calc(var(--card-w) * var(--narrow-mult));
+  }
+
   .preview-card.consonant { color: #3b82f6; }
   .preview-card.vowel     { color: #ef4444; }
   .preview-card.word-ending { font-size: var(--we-font); color: #f59e0b; }
@@ -331,6 +337,10 @@
 
   .flipped-stack.wide {
     width: calc(var(--card-w) * var(--wide-mult));
+  }
+
+  .flipped-stack.narrow {
+    width: calc(var(--card-w) * var(--narrow-mult));
   }
 
   .flipped-card {
@@ -358,6 +368,10 @@
 
   .notebook.wide {
     width: calc(var(--card-w) * var(--wide-mult));
+  }
+
+  .notebook.narrow {
+    width: calc(var(--card-w) * var(--narrow-mult));
   }
 
   /* Faces */
@@ -436,6 +450,26 @@
     text-align: center;
     white-space: nowrap;
     font-family: Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 0.35em;
+  }
+
+  /* Dot — desktop only */
+  @media (pointer: fine) {
+    .card-label::before {
+      content: '';
+      display: inline-block;
+      width: 0.45em;
+      height: 0.45em;
+      border-radius: 50%;
+      background: #b0a090;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .card-label.active-card::before {
+      background: #4CAF50;
+    }
   }
 
   /* Flipped state */
@@ -461,6 +495,10 @@
 
   .flying-card.wide {
     width: calc(var(--card-w) * var(--wide-mult));
+  }
+
+  .flying-card.narrow {
+    width: calc(var(--card-w) * var(--narrow-mult));
   }
 
   .fly-letter {
@@ -634,6 +672,30 @@
     letter-spacing: 0.05em;
   }
 
+  /* Apple device paste input field - visible search bar style */
+  .apple-paste-input {
+    width: 90%;
+    padding: 8px;
+    border: 2px solid #a0b49a;
+    border-radius: 6px;
+    background: white;
+    font-size: 0.9rem;
+    text-align: center;
+    color: #7a9a74;
+    outline: none;
+    margin-top: 8px;
+  }
+
+  .apple-paste-input::placeholder {
+    color: #a0b49a;
+    font-size: 0.85rem;
+  }
+
+  .apple-paste-input:focus {
+    border-color: #7a9a74;
+    background: #f9fdf9;
+  }
+
   .photo-card-plus {
     font-size: calc(var(--card-font) * 0.55);
     font-weight: 300;
@@ -649,9 +711,24 @@
     text-align: center;
   }
 
-  .photo-card-label {
+  .photo-drop-target {
+    position: relative;
+  }
+  .photo-drop-target.drag-over::after {
+    content: '📷 Drop image here';
     position: absolute;
-    bottom: var(--label-bottom);
+    inset: 0;
+    background: rgba(139, 111, 71, 0.85);
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px 6px 10px 10px;
+    z-index: 200;
+    pointer-events: none;
+  }
     left: 50%;
     transform: translateX(-50%);
     font-size: var(--label-font);
@@ -692,34 +769,37 @@
     .photo-card-scene.exiting  { animation: slideOutTop 0.2s ease-in forwards; }
   }
 
-  /* Photo Attach Button on Cards */
-  .photo-attach-btn {
+  /* + Photo button on letter card — top right corner */
+  .card-photo-btn {
     position: absolute;
-    bottom: 8px;
+    top: 8px;
     right: 8px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #8b6f47;
-    color: white;
-    border: 2px solid #fff;
-    font-size: 18px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.85);
+    color: #8b6f47;
+    border: 1.5px solid #c8b89a;
+    font-size: 1.1rem;
+    font-weight: 400;
+    line-height: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 20;
-    transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 25;
+    transition: background 0.15s, color 0.15s;
+    /* Don't interfere with card flip touch events */
+    touch-action: none;
   }
-  
-  .photo-attach-btn:hover {
-    background: #6d5736;
-    transform: scale(1.1);
+  .card-photo-btn:hover {
+    background: #8b6f47;
+    color: white;
   }
-  
-  .photo-attach-btn.has-photo {
-    background: #4CAF50;
+  .card-photo-btn.has-photo {
+    background: rgba(76,175,80,0.9);
+    color: white;
+    border-color: #4CAF50;
   }
 
   /* Attached Photo Display */
@@ -734,68 +814,69 @@
     pointer-events: none;
   }
 
-  /* Photo Gallery Modal - Sliding Side Panel from LEFT */
+  /* Photo Gallery — slide-in panel with dimmed backdrop */
+  #photoGalleryOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 29999;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+  }
+  #photoGalleryOverlay.open {
+    display: block;
+    opacity: 1;
+  }
+
   .photo-gallery-modal {
     position: fixed;
     top: 0;
-    left: -100%;
-    width: 280px;
-    max-width: 75vw;
+    left: -320px;
+    width: 300px;
+    max-width: 82vw;
     height: 100%;
     background: white;
-    z-index: 10000;
+    z-index: 30000;
     transition: left 0.3s ease-out;
-    box-shadow: 4px 0 12px rgba(0,0,0,0.2);
-    overflow-y: auto;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
-  
+
   .photo-gallery-modal.show {
     left: 0;
   }
-  
-  /* Push main content when gallery opens */
-  .container {
-    transition: transform 0.3s ease-out;
-  }
-  
-  .container.gallery-open {
-    transform: translateX(280px);
-  }
-  
-  @media (max-width: 768px) {
-    .container.gallery-open {
-      transform: translateX(75vw);
-    }
-  }
-  
+
   .photo-gallery-content {
-    padding: 16px;
+    padding: 0;
     height: 100%;
     display: flex;
     flex-direction: column;
   }
-  
+
   .gallery-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid #e0e0e0;
+    padding: 14px 16px;
+    border-bottom: 2px solid #f0e8d8;
     flex-shrink: 0;
+    background: #8b6f47;
   }
-  
+
   .gallery-title {
     font-size: 1rem;
     font-weight: bold;
-    color: #8b6f47;
+    color: white;
   }
-  
+
   .gallery-close {
     background: none;
     border: none;
     font-size: 1.5rem;
-    color: #999;
+    color: rgba(255,255,255,0.8);
     cursor: pointer;
     width: 32px;
     height: 32px;
@@ -803,21 +884,21 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    transition: background 0.15s;
   }
-  
-  .gallery-close:hover {
-    background: #f0f0f0;
-  }
-  
+
+  .gallery-close:hover { background: rgba(255,255,255,0.15); }
+
   .gallery-words-container {
     flex: 1;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 6px;
-    align-items: flex-start; /* Align bubbles to left, not stretched */
+    align-items: flex-start;
+    padding: 14px;
   }
-  
+
   .word-bubble {
     background: linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 100%);
     border: 2px solid #8b6f47;
@@ -825,18 +906,18 @@
     padding: 6px 12px;
     cursor: pointer;
     transition: all 0.2s;
-    display: inline-flex; /* Fit to content width */
+    display: inline-flex;
     align-items: center;
-    width: auto; /* Don't stretch to full width */
+    width: auto;
     min-width: auto;
   }
-  
+
   .word-bubble:hover {
     transform: translateX(4px);
-    box-shadow: -2px 2px 6px rgba(139, 111, 71, 0.2);
+    box-shadow: -2px 2px 6px rgba(139,111,71,0.2);
     background: linear-gradient(135deg, #e8d4b8 0%, #d8c4a8 100%);
   }
-  
+
   .word-bubble-text {
     font-size: 0.95rem;
     font-weight: 700;
@@ -845,11 +926,9 @@
     letter-spacing: 0.02em;
     white-space: nowrap;
   }
-  
-  .word-bubble-delete {
-    display: none; /* Hidden - not needed */
-  }
-  
+
+  .word-bubble-delete { display: none; }
+
   .gallery-empty {
     text-align: center;
     padding: 40px 16px;
@@ -860,6 +939,9 @@
 </style>
 </head>
 <body>
+  <!-- Photo Gallery backdrop -->
+  <div id="photoGalleryOverlay" onclick="closePhotoGallery()"></div>
+
   <!-- Photo Gallery Side Panel -->
   <div class="photo-gallery-modal" id="photoGalleryModal">
     <div class="photo-gallery-content">
@@ -897,8 +979,11 @@
 
           <!-- Photo card row -->
           <div class="settings-row">
-            <span class="settings-label">Photo Card</span>
-            <button class="settings-toggle-btn" id="photoToggleBtn" onclick="togglePhotoCard()">Off</button>
+            <span class="settings-label">Photo</span>
+            <div style="display:flex;gap:4px;">
+              <button class="settings-toggle-btn" id="photoBtnIn"  onclick="setPhotoMode('in')">In</button>
+              <button class="settings-toggle-btn" id="photoBtnOut" onclick="setPhotoMode('out')">Out</button>
+            </div>
           </div>
         </div>
       </div>
@@ -908,9 +993,12 @@
         <button class="dropdown-btn" onclick="toggleDropdown()">⋯</button>
         <div class="dropdown-content" id="dropdownContent">
           <button onclick="handleMenuItem('cvc')">CVC</button>
+          <button onclick="handleMenuItem('cvvc')">CVVC</button>
           <button onclick="handleMenuItem('short-a')">Short Vowel "a"</button>
           <button onclick="handleMenuItem('reset')">Reset All</button>
           <button onclick="handleMenuItem('about')">About</button>
+          <div style="border-top:1px solid #e0d8cc;margin:4px 0;"></div>
+          <button onclick="handleMenuItem('tracing')" style="color:#8b6f47;">✏️ Letter Tracing</button>
         </div>
       </div>
     </div>
@@ -920,6 +1008,108 @@
     </div>
   </div>
 
+  <!-- ── Letter Tracing Page ── -->
+  <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:50000;background:#fdf8f0;flex-direction:column;overflow:hidden;">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#8b6f47;flex-shrink:0;">
+      <button onclick="closeTracingPage()" style="background:rgba(255,255,255,0.15);border:none;color:white;font-size:1.3rem;width:36px;height:36px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
+      <span style="color:white;font-weight:700;font-size:1rem;flex:1;">Letter Tracing</span>
+      <button id="tracingCaseBtn" onclick="cycleTracingCase()" style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.4);color:white;font-size:0.85rem;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer;min-width:40px;">aa</button>
+      <button onclick="clearTracing()" style="background:rgba(255,255,255,0.15);border:none;color:white;font-size:0.8rem;font-weight:700;padding:6px 11px;border-radius:8px;cursor:pointer;">Clear</button>
+      <button id="tracingPlayBtn" onclick="playTracingAnimation()" style="background:rgba(255,255,255,0.92);border:none;color:#8b6f47;font-size:0.85rem;font-weight:700;padding:6px 13px;border-radius:8px;cursor:pointer;">▶ Play</button>
+    </div>
+
+    <!-- Toolbar: word input + manual button + nav -->
+    <div style="padding:8px 12px 6px;background:#f5ece0;border-bottom:1px solid #e0d0b8;flex-shrink:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <!-- Quick single-word input -->
+      <label id="tracingWordLabel" style="font-size:0.78rem;font-weight:700;color:#8b6f47;white-space:nowrap;">Word:</label>
+      <input id="tracingWordInput" type="text" maxlength="4" placeholder="e.g. cat"
+        style="font-family:'Comic Sans MS',cursive;font-size:1rem;font-weight:700;color:#5a4a32;padding:4px 9px;border:2px solid #c8b89a;border-radius:8px;background:white;outline:none;width:80px;"
+        oninput="onTracingWordInput(this.value)">
+      <span id="tracingLetterCount" style="font-size:0.75rem;color:#a09080;margin-right:4px;">0 / 4</span>
+
+      <!-- Manual list button -->
+      <button id="manualModeBtn" onclick="openManualWordPanel()" style="background:#8b6f47;border:none;color:white;font-size:0.78rem;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer;">Manual</button>
+
+      <!-- Alphabet mode button -->
+      <button id="alphabetModeBtn" onclick="activateAlphabetMode()" style="background:transparent;border:2px solid #8b6f47;color:#8b6f47;font-size:0.78rem;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer;">Alphabet</button>
+
+      <!-- Spacer -->
+      <div style="flex:1;"></div>
+
+      <!-- Prev / scroll wheel display / Next -->
+      <button onclick="tracingNav(-1)" style="background:#8b6f47;border:none;color:white;font-size:1rem;font-weight:700;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;">‹</button>
+      <div id="tracingWheelWrap" onclick="openScrollWheel()" style="cursor:pointer;background:white;border:2px solid #c8b89a;border-radius:8px;padding:3px 10px;min-width:70px;text-align:center;font-family:'Comic Sans MS',cursive;font-size:1rem;font-weight:700;color:#5a4a32;user-select:none;">—</div>
+      <button onclick="tracingNav(1)" style="background:#8b6f47;border:none;color:white;font-size:1rem;font-weight:700;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;">›</button>
+    </div>
+
+    <!-- Notebook lines area -->
+    <div id="tracingNotebook" style="flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;padding:10px 6px;">
+      <canvas id="tracingCanvas" style="display:block;touch-action:none;"></canvas>
+    </div>
+
+  </div>
+
+  <!-- ── Manual Word Panel ── -->
+  <div id="manualWordPanel" style="display:none;position:fixed;inset:0;z-index:60000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:16px;padding:20px;width:min(90vw,360px);max-height:80vh;display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
+      <div style="display:flex;align-items:center;">
+        <span style="font-weight:700;font-size:1rem;color:#5a4a32;flex:1;">Manual Word List</span>
+        <button onclick="closeManualWordPanel()" style="background:none;border:none;font-size:1.4rem;color:#999;cursor:pointer;width:32px;height:32px;border-radius:50%;">×</button>
+      </div>
+      <!-- Entry field -->
+      <div style="display:flex;gap:8px;">
+        <input id="manualWordEntry" type="text" maxlength="4" placeholder="Type word, press Enter"
+          style="flex:1;font-family:'Comic Sans MS',cursive;font-size:1rem;font-weight:700;color:#5a4a32;padding:7px 10px;border:2px solid #c8b89a;border-radius:8px;outline:none;"
+          onkeydown="if(event.key==='Enter')addManualWord()">
+        <button onclick="addManualWord()" style="background:#8b6f47;border:none;color:white;font-size:0.85rem;font-weight:700;padding:7px 12px;border-radius:8px;cursor:pointer;">Add</button>
+      </div>
+      <!-- Word list -->
+      <div id="manualWordList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;min-height:60px;max-height:200px;"></div>
+
+      <!-- Copy / Paste row -->
+      <div style="display:flex;gap:8px;">
+        <button onclick="copyManualWords()" id="manualCopyBtn" style="flex:1;background:#f0e8dc;border:2px solid #c8b89a;color:#8b6f47;font-size:0.82rem;font-weight:700;padding:7px;border-radius:8px;cursor:pointer;">📋 Copy List</button>
+        <button onclick="showManualPasteArea()" style="flex:1;background:#f0e8dc;border:2px solid #c8b89a;color:#8b6f47;font-size:0.82rem;font-weight:700;padding:7px;border-radius:8px;cursor:pointer;">📥 Paste List</button>
+      </div>
+
+      <!-- Paste area (hidden by default) -->
+      <div id="manualPasteArea" style="display:none;flex-direction:column;gap:6px;">
+        <textarea id="manualPasteInput" rows="3" placeholder="Paste your list here: cat, bat, mat, sat"
+          style="width:100%;font-family:'Comic Sans MS',cursive;font-size:0.9rem;color:#5a4a32;padding:7px 10px;border:2px solid #c8b89a;border-radius:8px;outline:none;resize:none;"></textarea>
+        <button onclick="importPastedWords()" style="background:#8b6f47;border:none;color:white;font-size:0.85rem;font-weight:700;padding:8px;border-radius:8px;cursor:pointer;width:100%;">Import</button>
+      </div>
+
+      <!-- Confirm -->
+      <button onclick="confirmManualWords()" style="background:#4CAF50;border:none;color:white;font-size:0.95rem;font-weight:700;padding:10px;border-radius:10px;cursor:pointer;width:100%;">✓ Confirm</button>
+    </div>
+  </div>
+
+  <!-- ── Scroll Wheel Picker ── -->
+  <div id="scrollWheelOverlay" style="display:none;position:fixed;inset:0;z-index:60000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:16px;padding:16px 20px;width:min(80vw,280px);box-shadow:0 8px 32px rgba(0,0,0,0.25);display:flex;flex-direction:column;align-items:center;gap:12px;">
+      <span style="font-weight:700;font-size:0.95rem;color:#5a4a32;">Select Word</span>
+
+      <!-- Drum wheel -->
+      <div style="position:relative;width:100%;height:180px;overflow:hidden;">
+        <!-- Highlight band -->
+        <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:44px;background:rgba(139,111,71,0.1);border-top:2px solid #c8b89a;border-bottom:2px solid #c8b89a;pointer-events:none;z-index:2;border-radius:6px;"></div>
+        <!-- Fade top/bottom -->
+        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,white 0%,transparent 30%,transparent 70%,white 100%);pointer-events:none;z-index:3;"></div>
+        <!-- Scrollable list -->
+        <div id="wheelList" style="position:absolute;left:0;right:0;overflow-y:scroll;height:100%;scrollbar-width:none;-ms-overflow-style:none;"
+          onscroll="onWheelScroll()">
+          <div id="wheelItems" style="padding:68px 0;"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;width:100%;">
+        <button onclick="closeScrollWheel()" style="flex:1;background:#e0d8cc;border:none;color:#5a4a32;font-size:0.9rem;font-weight:700;padding:9px;border-radius:10px;cursor:pointer;">Cancel</button>
+        <button onclick="confirmScrollWheel()" style="flex:1;background:#8b6f47;border:none;color:white;font-size:0.9rem;font-weight:700;padding:9px;border-radius:10px;cursor:pointer;">Select</button>
+      </div>
+    </div>
+  </div>
   <script>
     const consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'];
     const vowels = ['a', 'e', 'i', 'o', 'u'];
@@ -959,15 +1149,13 @@
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';
-      input.onchange = (e) => {
+      input.onchange = async (e) => {
         const file = e.target.files[0];
         if (file) {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            wordPhotos[word] = event.target.result;
-            renderCards(); // Re-render to show photo
-          };
-          reader.readAsDataURL(file);
+          try {
+            const dataUrl = await readFileAsDataUrl(file);
+            savePhotoForWord(word, dataUrl);
+          } catch { alert('Error reading image.'); }
         }
       };
       input.click();
@@ -975,52 +1163,37 @@
 
     function openPhotoGallery() {
       const modal = document.getElementById('photoGalleryModal');
+      const overlay = document.getElementById('photoGalleryOverlay');
       const container = document.getElementById('galleryWordsContainer');
-      const mainContainer = document.getElementById('mainContainer');
-      
+
       container.innerHTML = '';
-      
       const photoWords = Object.keys(wordPhotos);
-      
+
       if (photoWords.length === 0) {
         container.innerHTML = '<div class="gallery-empty">No photos attached yet.<br><br>Turn on Photo Card and attach photos to word blends.</div>';
       } else {
-        // Sort words alphabetically
         photoWords.sort((a, b) => a.localeCompare(b));
-        
         photoWords.forEach(word => {
           const bubble = document.createElement('div');
           bubble.className = 'word-bubble';
-          
-          // Click bubble to navigate to word
-          bubble.onclick = () => {
-            navigateToWord(word);
-            closePhotoGallery();
-          };
-          
-          // Word text with case transform
+          bubble.onclick = () => { navigateToWord(word); closePhotoGallery(); };
+
+          let displayWord = word;
+          if (CASE_MODES[currentCaseMode] === 'lower') displayWord = word.toLowerCase();
+          else if (CASE_MODES[currentCaseMode] === 'UPPER') displayWord = word.toUpperCase();
+          else if (CASE_MODES[currentCaseMode] === 'Sentence') displayWord = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+
           const wordText = document.createElement('div');
           wordText.className = 'word-bubble-text';
-          
-          // Apply case transform based on current mode
-          let displayWord = word;
-          if (CASE_MODES[currentCaseMode] === 'lower') {
-            displayWord = word.toLowerCase();
-          } else if (CASE_MODES[currentCaseMode] === 'UPPER') {
-            displayWord = word.toUpperCase();
-          } else if (CASE_MODES[currentCaseMode] === 'Sentence') {
-            displayWord = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-          }
-          
           wordText.textContent = displayWord;
           bubble.appendChild(wordText);
           container.appendChild(bubble);
         });
       }
-      
-      // Slide panel in and push main content
+
       modal.classList.add('show');
-      mainContainer.classList.add('gallery-open');
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
     }
 
     function navigateToWord(targetWord) {
@@ -1044,11 +1217,9 @@
     }
 
     function closePhotoGallery() {
-      const modal = document.getElementById('photoGalleryModal');
-      const mainContainer = document.getElementById('mainContainer');
-      
-      modal.classList.remove('show');
-      mainContainer.classList.remove('gallery-open');
+      document.getElementById('photoGalleryModal').classList.remove('show');
+      document.getElementById('photoGalleryOverlay').classList.remove('open');
+      document.body.style.overflow = '';
     }
 
     function toggleSettings() {
@@ -1114,33 +1285,205 @@
     };
 
     let photoCardVisible = false;
-    const wordPhotos = {}; // Store photos by word blend (e.g., "bat", "cat", "am")
+    let photoMode = 'off'; // 'off' | 'in' | 'out'
+    const wordPhotos = {}; // Shared photo store — same data regardless of In/Out mode
 
-    function togglePhotoCard() {
-      const btn = document.getElementById('photoToggleBtn');
+    function setPhotoMode(mode) {
+      // Tapping the active mode turns it off
+      if (photoMode === mode) mode = 'off';
+
+      photoMode = mode;
+      photoCardVisible = (mode !== 'off');
+
+      // Update button highlights
+      ['in','out'].forEach(m => {
+        const btn = document.getElementById('photoBtn' + m.charAt(0).toUpperCase() + m.slice(1));
+        if (btn) btn.classList.toggle('active', m === mode);
+      });
+
+      // Handle external photo container visibility
       const photoContainer = document.getElementById('photoCardContainer');
-
-      if (!photoCardVisible) {
-        photoCardVisible = true;
-        btn.textContent = 'On';
-        btn.classList.add('active');
+      if (mode === 'out') {
         photoContainer.classList.add('visible');
-        appendPhotoCard(photoContainer, true);
       } else {
-        const existing = photoContainer.querySelector('.photo-card-scene');
-        if (existing) {
-          existing.classList.remove('entering');
-          existing.classList.add('exiting');
-          setTimeout(() => { 
-            if (existing.parentNode) existing.parentNode.removeChild(existing);
-            photoContainer.classList.remove('visible');
-          }, 200);
-        }
-        photoCardVisible = false;
-        btn.textContent = 'Off';
-        btn.classList.remove('active');
+        photoContainer.classList.remove('visible');
+        photoContainer.innerHTML = '';
       }
+
+      renderCards();
     }
+
+    // ── Shared photo save with replace prompt ──────────────────────────────
+    function savePhotoForWord(word, dataUrl) {
+      if (wordPhotos[word]) {
+        if (!confirm(`A photo already exists for "${word}".\nReplace it?`)) return;
+      }
+      wordPhotos[word] = dataUrl;
+      renderCards();
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith('image/')) { reject('Not an image'); return; }
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Module-level: track which word the mouse is currently hovering over
+    let hoveredPhotoWord = null;
+    // Track which card index the mouse is hovering over (for keyboard jump)
+    let hoveredCardIndex = null;
+    // Track the last card that was flipped (for green dot indicator)
+    let lastActiveCardIndex = null;
+
+    function setActiveCard(cardIndex) {
+      lastActiveCardIndex = cardIndex;
+      // Update all label dots
+      document.querySelectorAll('.card-label').forEach((lbl, i) => {
+        lbl.classList.toggle('active-card', i === cardIndex);
+      });
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      // ── Arrow keys: use lastActiveCardIndex (green dot card) ──
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+
+        const totalCards = gameState.cards.length;
+
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+          // Move active card focus left or right
+          let next;
+          if (lastActiveCardIndex === null) {
+            // Nothing active yet — initiate first card
+            next = e.key === 'ArrowRight' ? 0 : totalCards - 1;
+          } else {
+            next = e.key === 'ArrowRight'
+              ? (lastActiveCardIndex + 1) % totalCards
+              : (lastActiveCardIndex - 1 + totalCards) % totalCards;
+          }
+          setActiveCard(next);
+          return;
+        }
+
+        // Up/Down: flip the active card
+        if (lastActiveCardIndex === null) return; // no active card yet
+
+        const scenes = document.querySelectorAll('.card-scene');
+        const notebook = scenes[lastActiveCardIndex]?.querySelector('.notebook');
+
+        if (e.key === 'ArrowUp') {
+          if (notebook) flipCardForward(lastActiveCardIndex, notebook);
+        } else {
+          flipCardBackward(lastActiveCardIndex);
+        }
+        return;
+      }
+
+      // ── Letter key: jump hovered card to that letter ──
+      if (hoveredCardIndex === null) return;
+      if (e.key.length !== 1) return;
+
+      const typed = e.key.toLowerCase();
+      const card = gameState.cards[hoveredCardIndex];
+      if (!card) return;
+
+      const targetIndex = card.letters.findIndex(l => l.toLowerCase() === typed);
+      if (targetIndex === -1) return;
+      if (card.currentIndex === targetIndex) return;
+
+      card.currentIndex = targetIndex;
+      card.flippedCards = [];
+      renderCards();
+    });
+
+    // Attach drag-and-drop + paste-on-hover to any element.
+    // getWord() is called at event time to determine target word.
+    function addPhotoDropAndPaste(el, getWord) {
+      el.classList.add('photo-drop-target');
+
+      // Track hovered word at the module level so it survives re-renders
+      el.addEventListener('mouseenter', () => { hoveredPhotoWord = getWord(); });
+      el.addEventListener('mouseleave', () => { hoveredPhotoWord = null; });
+
+      // ── Drag and drop ──
+      el.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if ([...e.dataTransfer.types].includes('Files') || [...e.dataTransfer.types].includes('text/html')) {
+          el.classList.add('drag-over');
+          hoveredPhotoWord = getWord(); // refresh on dragover too
+        }
+      });
+      el.addEventListener('dragleave', (e) => {
+        if (!el.contains(e.relatedTarget)) {
+          el.classList.remove('drag-over');
+        }
+      });
+      el.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        el.classList.remove('drag-over');
+        const word = getWord();
+
+        // Try file drop first
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          try {
+            const dataUrl = await readFileAsDataUrl(file);
+            savePhotoForWord(word, dataUrl);
+          } catch { alert('Please drop an image file.'); }
+          return;
+        }
+
+        // Try image dragged from browser
+        const imgHtml = e.dataTransfer.getData('text/html');
+        if (imgHtml) {
+          const match = imgHtml.match(/src="([^"]+)"/);
+          if (match) {
+            try {
+              const resp = await fetch(match[1]);
+              const blob = await resp.blob();
+              if (!blob.type.startsWith('image/')) { alert('Not an image.'); return; }
+              const dataUrl = await readFileAsDataUrl(blob);
+              savePhotoForWord(word, dataUrl);
+            } catch { alert('Could not load that image. Try saving it locally first.'); }
+            return;
+          }
+        }
+        alert('Please drop an image file.');
+      });
+    }
+
+    // Single global paste listener — routes to the currently hovered photo target word
+    document.addEventListener('paste', async (e) => {
+      const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+
+      if (!isApple && hoveredPhotoWord !== null) {
+        // Desktop: paste into whichever card word is hovered
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        for (const item of items) {
+          if (item.type.startsWith('image/')) {
+            e.preventDefault();
+            try {
+              const dataUrl = await readFileAsDataUrl(item.getAsFile());
+              savePhotoForWord(hoveredPhotoWord, dataUrl);
+            } catch { alert('Error reading pasted image.'); }
+            return;
+          }
+        }
+      } else if (isApple) {
+        // iOS: fall through to the apple-paste-input handler in appendPhotoCard
+        // (handled inline per card)
+      }
+    });
 
     function appendPhotoCard(wrapper, animate) {
       const scene = document.createElement('div');
@@ -1154,6 +1497,13 @@
         const letter = c.letters[c.currentIndex];
         return applyCaseTransform(letter, 0).toLowerCase();
       }).join('');
+
+      // Wire drag/drop + paste-on-hover; word is always the current word for this card
+      const getCardWord = () => gameState.cards.map((c) =>
+        applyCaseTransform(c.letters[c.currentIndex], 0).toLowerCase()
+      ).join('');
+      addPhotoDropAndPaste(card, getCardWord);
+      card._getWord = getCardWord;
 
       // Check if current word has a photo
       if (wordPhotos[currentWord]) {
@@ -1207,70 +1557,88 @@
         // Detect device type
         const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
         
-        // Paste area in bottom-right corner (all devices)
-        const pasteArea = document.createElement('div');
-        pasteArea.className = 'photo-paste-area';
-        pasteArea.innerHTML = `
-          <div class="photo-paste-icon">📋</div>
-          <div class="photo-paste-text">Paste</div>
-        `;
-        
-        // Long-press detection for Apple devices
-        let longPressTimer;
-        let pressStartTime;
-        
-        pasteArea.addEventListener('touchstart', (e) => {
-          if (isApple) {
-            pressStartTime = Date.now();
-            longPressTimer = setTimeout(() => {
-              // After 500ms hold, try to trigger native paste
-              e.target.focus();
-              document.execCommand('paste');
-            }, 500);
-          }
-        });
-        
-        pasteArea.addEventListener('touchend', (e) => {
-          if (isApple) {
-            clearTimeout(longPressTimer);
-            const pressDuration = Date.now() - pressStartTime;
-            
-            // If it was a quick tap (< 500ms), open file picker
-            if (pressDuration < 500) {
-              e.preventDefault();
-              e.stopPropagation();
-              attachPhotoToCurrentWord();
-            }
-          }
-        });
-        
-        pasteArea.addEventListener('touchcancel', () => {
-          if (isApple) {
-            clearTimeout(longPressTimer);
-          }
-        });
-        
-        // Click handler for non-touch devices (PC)
-        pasteArea.onclick = async (e) => {
-          e.stopPropagation();
+        if (isApple) {
+          // Apple devices: Show visible search bar for paste
+          const pasteInput = document.createElement('input');
+          pasteInput.type = 'text';
+          pasteInput.className = 'apple-paste-input';
+          pasteInput.placeholder = 'Tap to paste';
+          // NOT readOnly - allow keyboard to show, enabling paste option
           
-          if (!isApple) {
-            // PC/Android: Try clipboard paste
+          // Listen for paste event
+          pasteInput.addEventListener('paste', (e) => {
+            console.log('Paste event triggered on Apple device');
+            e.preventDefault();
+            
+            const items = e.clipboardData?.items;
+            console.log('Clipboard items:', items ? items.length : 'none');
+            
+            if (items) {
+              for (let i = 0; i < items.length; i++) {
+                console.log('Item type:', items[i].type);
+                
+                if (items[i].type.startsWith('image/')) {
+                  console.log('Image found in clipboard!');
+                  const blob = items[i].getAsFile();
+                  const reader = new FileReader();
+                  
+                  reader.onload = (event) => {
+                    const currentWord = getCurrentWord();
+                    savePhotoForWord(currentWord, event.target.result);
+                    pasteInput.value = '';
+                    pasteInput.blur();
+                  };
+                  
+                  reader.onerror = (error) => {
+                    console.error('FileReader error:', error);
+                    alert('Error reading image');
+                  };
+                  
+                  reader.readAsDataURL(blob);
+                  return; // Exit after finding image
+                }
+              }
+              
+              console.log('No image found in clipboard items');
+              alert('No image found. Please copy an image first.');
+            } else {
+              console.log('No clipboard items available');
+              alert('Clipboard is empty');
+            }
+          });
+          
+          // Also try input event as fallback
+          pasteInput.addEventListener('input', (e) => {
+            console.log('Input event triggered, value:', e.target.value);
+          });
+          
+          card.appendChild(pasteInput);
+          
+        } else {
+          // PC: Show paste button in corner
+          const pasteArea = document.createElement('div');
+          pasteArea.className = 'photo-paste-area';
+          pasteArea.innerHTML = `
+            <div class="photo-paste-icon">📋</div>
+            <div class="photo-paste-text">Paste</div>
+          `;
+          
+          pasteArea.onclick = async (e) => {
+            e.stopPropagation();
             const pasted = await tryPasteImage();
             if (!pasted) {
               alert('No image in clipboard. Please copy an image first.');
             }
-          }
-          // Apple devices handled by touch events above
-        };
-        
-        card.appendChild(pasteArea);
+          };
+          
+          card.appendChild(pasteArea);
+        }
         
         // Make main card area clickable for file upload
         card.style.cursor = 'pointer';
         card.onclick = (e) => {
-          // Don't trigger if clicking paste area
-          if (!e.target.closest('.photo-paste-area')) {
+          // Don't trigger if clicking paste area or input
+          if (!e.target.closest('.photo-paste-area') && !e.target.classList.contains('apple-paste-input')) {
             attachPhotoToCurrentWord();
           }
         };
@@ -1280,36 +1648,24 @@
       wrapper.appendChild(scene);
     }
 
-    async function tryPasteImage() {
+    async function tryPasteImage(targetWord) {
+      const word = targetWord || getCurrentWord();
       try {
-        // Request clipboard permission explicitly
         const permission = await navigator.permissions.query({ name: 'clipboard-read' });
-        
-        if (permission.state === 'denied') {
-          return false;
-        }
+        if (permission.state === 'denied') return false;
 
-        // Try modern Clipboard API
         const clipboardItems = await navigator.clipboard.read();
-        
         for (const item of clipboardItems) {
           for (const type of item.types) {
             if (type.startsWith('image/')) {
               const blob = await item.getType(type);
-              const reader = new FileReader();
-              
-              reader.onload = (event) => {
-                const currentWord = getCurrentWord();
-                wordPhotos[currentWord] = event.target.result;
-                renderCards();
-              };
-              
-              reader.readAsDataURL(blob);
-              return true; // Successfully pasted
+              const dataUrl = await readFileAsDataUrl(blob);
+              savePhotoForWord(word, dataUrl);
+              return true;
             }
           }
         }
-        return false; // No image in clipboard
+        return false;
       } catch (err) {
         console.log('Paste failed:', err.message);
         return false;
@@ -1347,6 +1703,9 @@
         case 'cvc':
           setCVCMode();
           break;
+        case 'cvvc':
+          setCVVCMode();
+          break;
         case 'short-a':
           setShortVowelA();
           break;
@@ -1356,6 +1715,9 @@
         case 'about':
           alert('FlashABC - Notebook Flip Card Builder\nVersion 1.0\n\nClick cards to flip through letters!');
           break;
+        case 'tracing':
+          openTracingPage();
+          break;
       }
     }
 
@@ -1364,6 +1726,17 @@
       gameState.cards = [
         { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] },
         { type: 'vowel', letters: vowels, currentIndex: 0, label: 'Vowel', flippedCards: [] },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] }
+      ];
+      renderCards();
+    }
+
+    function setCVVCMode() {
+      gameState.mode = 'cvvc';
+      gameState.cards = [
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] },
+        { type: 'vowel',     letters: vowels,     currentIndex: 0, label: 'Vowel',     flippedCards: [], isNarrow: true },
+        { type: 'vowel',     letters: vowels,     currentIndex: 0, label: 'Vowel',     flippedCards: [], isNarrow: true },
         { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] }
       ];
       renderCards();
@@ -1403,20 +1776,44 @@
         const flippedStack = document.createElement('div');
         flippedStack.className = 'flipped-stack';
         if (cardData.isWide) flippedStack.classList.add('wide');
+        if (cardData.isNarrow) flippedStack.classList.add('narrow');
         
         // Add all previously flipped cards to the stack
         if (cardData.flippedCards && cardData.flippedCards.length > 0) {
-          cardData.flippedCards.forEach((letter, index) => {
+          cardData.flippedCards.forEach((flip, index) => {
             const flippedCard = document.createElement('div');
             flippedCard.className = 'flipped-card';
-            if (cardData.isWide) {
-              flippedCard.classList.add('wide');
-            }
-            // No text content - just blank card
+            if (cardData.isWide) flippedCard.classList.add('wide');
+            if (cardData.isNarrow) flippedCard.classList.add('narrow');
             flippedCard.style.zIndex = 100 + index;
+
+            // In 'in' mode: show photo on the back (top face) of the top-most flipped card
+            const isTopCard = index === cardData.flippedCards.length - 1;
+            if (photoMode === 'in' && isTopCard && photoCardVisible) {
+              const flipWord = typeof flip === 'object' ? flip.word : null;
+              const photo = flipWord ? wordPhotos[flipWord] : null;
+
+              if (photo) {
+                // Display-only: just show the image, no interaction
+                const img = document.createElement('img');
+                img.src = photo;
+                img.className = 'card-photo';
+                img.style.borderRadius = '4px 4px 8px 8px';
+                img.style.pointerEvents = 'none';
+                flippedCard.appendChild(img);
+              }
+              // No photo = blank card, no cue, no interaction
+            }
+
             flippedStack.appendChild(flippedCard);
           });
         }
+
+        // Always show one blank card on top of the stack (above the binding)
+        const alwaysTopCard = document.createElement('div');
+        alwaysTopCard.className = 'flipped-card' + (cardData.isWide ? ' wide' : cardData.isNarrow ? ' narrow' : '');
+        alwaysTopCard.style.zIndex = 200;
+        flippedStack.appendChild(alwaysTopCard);
         
         const letters = cardData.letters;
         const currentIndex = cardData.currentIndex;
@@ -1427,6 +1824,8 @@
         previewCard.className = `preview-card ${cardData.type}`;
         if (cardData.isWide) {
           previewCard.classList.add('wide');
+        } else if (cardData.isNarrow) {
+          previewCard.classList.add('narrow');
         }
         previewCard.textContent = applyCaseTransform(letters[nextIndex], cardIndex);
         
@@ -1435,12 +1834,76 @@
         notebook.className = `notebook ${cardData.type}`;
         if (cardData.isWide) {
           notebook.classList.add('wide');
+        } else if (cardData.isNarrow) {
+          notebook.classList.add('narrow');
         }
         
         // Front face (current letter)
         const faceFront = document.createElement('div');
         faceFront.className = 'face face-front';
         faceFront.textContent = applyCaseTransform(letters[currentIndex], cardIndex);
+
+        // ── + Photo button (top-right of the letter card) ──
+        if (photoCardVisible) {
+          const currentWord = gameState.cards.map((c, i) =>
+            c.letters[c.currentIndex].toLowerCase()
+          ).join('');
+          const hasPhoto = !!wordPhotos[currentWord];
+
+          const photoBtn = document.createElement('button');
+          photoBtn.className = 'card-photo-btn' + (hasPhoto ? ' has-photo' : '');
+          photoBtn.textContent = hasPhoto ? '✓' : '+';
+          photoBtn.title = hasPhoto ? 'Photo attached — click to replace' : 'Attach photo (click, drag, or Ctrl+V)';
+
+          // Hovering the button sets the paste target word
+          photoBtn.addEventListener('mouseenter', () => { hoveredPhotoWord = currentWord; });
+          photoBtn.addEventListener('mouseleave', () => { hoveredPhotoWord = null; });
+
+          // Click → file picker (with replace prompt if needed)
+          photoBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async (ev) => {
+              const file = ev.target.files[0];
+              if (file) {
+                try {
+                  const dataUrl = await readFileAsDataUrl(file);
+                  savePhotoForWord(currentWord, dataUrl);
+                } catch { alert('Error reading image.'); }
+              }
+            };
+            input.click();
+          });
+
+          // Drag-and-drop onto the button itself
+          addPhotoDropAndPaste(photoBtn, () => currentWord);
+
+          // Prevent button touch events from propagating to the card flip handler
+          photoBtn.addEventListener('touchstart', (e) => e.stopPropagation());
+          photoBtn.addEventListener('touchend', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            // On touch, open file picker
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async (ev) => {
+              const file = ev.target.files[0];
+              if (file) {
+                try {
+                  const dataUrl = await readFileAsDataUrl(file);
+                  savePhotoForWord(currentWord, dataUrl);
+                } catch { alert('Error reading image.'); }
+              }
+            };
+            input.click();
+          });
+
+          faceFront.appendChild(photoBtn);
+        }
         
         // Back face (next letter)
         const faceBack = document.createElement('div');
@@ -1460,78 +1923,87 @@
         scene.appendChild(previewCard);
         scene.appendChild(notebook);
         scene.appendChild(label);
-        
-        // Click on flipped stack to go backwards
-        flippedStack.onclick = (e) => {
-          e.stopPropagation();
-          if (cardData.flippedCards && cardData.flippedCards.length > 0) {
-            flipCardBackward(cardIndex);
-          }
-        };
-        
-        // Touch on flipped stack for mobile
-        flippedStack.addEventListener('touchstart', (e) => {
-          e.stopPropagation(); // prevent scene touchstart from treating this as a forward-flip gesture
-        });
 
-        flippedStack.addEventListener('touchend', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (cardData.flippedCards && cardData.flippedCards.length > 0) {
-            flipCardBackward(cardIndex);
-          }
-        });
-        
-        // Touch/Swipe handling
+        // ── Unified event handling ──
         let touchStartY = 0;
-        let touchEndY = 0;
         let touchStartTime = 0;
         let isSwiping = false;
-        let touchStartedOnStack = false;
-        
+        let touchOriginOnStack = false;
+
         scene.addEventListener('touchstart', (e) => {
-          touchStartedOnStack = flippedStack.contains(e.target);
+          if (e.target.closest('.card-photo-btn')) return;
+          touchOriginOnStack = flippedStack.contains(e.target);
           touchStartY = e.touches[0].clientY;
           touchStartTime = performance.now();
           isSwiping = false;
-        });
-        
+        }, { passive: true });
+
         scene.addEventListener('touchmove', (e) => {
+          if (e.target.closest('.card-photo-btn')) return;
           isSwiping = true;
-        });
-        
+        }, { passive: true });
+
         scene.addEventListener('touchend', (e) => {
-          if (touchStartedOnStack) return; // handled by flippedStack listener
-          touchEndY = e.changedTouches[0].clientY;
-          const touchEndTime = performance.now();
-          
+          if (e.target.closest('.card-photo-btn')) return;
+          const endY = e.changedTouches[0].clientY;
+          const endTime = performance.now();
           if (isSwiping) {
-            handleSwipe(cardIndex, notebook, touchStartY, touchEndY, touchStartTime, touchEndTime);
+            handleSwipe(cardIndex, notebook, touchStartY, endY, touchStartTime, endTime);
           } else {
-            // Single tap without swipe - flip forward
             e.preventDefault();
-            flipCardForward(cardIndex, notebook);
+            if (touchOriginOnStack) {
+              flipCardBackward(cardIndex);
+            } else {
+              flipCardForward(cardIndex, notebook);
+            }
           }
         });
-        
-        // Click to flip forward (for desktop)
+
+        // Desktop click
         scene.onclick = (e) => {
-          if (!e.defaultPrevented) {
+          if (e.defaultPrevented || e.target.closest('.card-photo-btn')) return;
+          if (flippedStack.contains(e.target)) {
+            flipCardBackward(cardIndex);
+          } else {
             flipCardForward(cardIndex, notebook);
           }
         };
-        
+
+        // Keyboard jump tracking
+        scene.addEventListener('mouseenter', () => {
+          hoveredCardIndex = cardIndex;
+        });
+        scene.addEventListener('mouseleave', () => {
+          if (hoveredCardIndex === cardIndex) hoveredCardIndex = null;
+        });
+
         wrapper.appendChild(scene);
       });
 
-      // Update photo card if visible (separate container)
+      // Restore active card dot after DOM rebuild
+      if (lastActiveCardIndex !== null) {
+        document.querySelectorAll('.card-label').forEach((lbl, i) => {
+          lbl.classList.toggle('active-card', i === lastActiveCardIndex);
+        });
+      }
+
+      // Update photo card if visible (separate container) — only in 'out' mode
       if (photoCardVisible) {
         const photoContainer = document.getElementById('photoCardContainer');
-        const existingPhoto = photoContainer.querySelector('.photo-card-scene');
-        if (existingPhoto) {
-          photoContainer.removeChild(existingPhoto);
+        if (photoMode === 'out') {
+          photoContainer.classList.add('visible');
+          const existingPhoto = photoContainer.querySelector('.photo-card-scene');
+          if (existingPhoto) photoContainer.removeChild(existingPhoto);
+          appendPhotoCard(photoContainer, false);
+        } else {
+          photoContainer.classList.remove('visible');
+          photoContainer.innerHTML = '';
         }
-        appendPhotoCard(photoContainer, false);
+      } else {
+        // off mode — ensure container is hidden
+        const photoContainer = document.getElementById('photoCardContainer');
+        photoContainer.classList.remove('visible');
+        photoContainer.innerHTML = '';
       }
     }
 
@@ -1601,6 +2073,7 @@
       const flyCard = document.createElement('div');
       flyCard.className = `flying-card ${card.type}`;
       if (card.isWide) flyCard.classList.add('wide');
+      if (card.isNarrow) flyCard.classList.add('narrow');
       flyCard.style.height = cardH + 'px';
       flyCard.style.top = '0px';
 
@@ -1663,11 +2136,14 @@
         if (flyCard.parentNode) flyCard.parentNode.removeChild(flyCard);
 
         if (!card.flippedCards) card.flippedCards = [];
-        card.flippedCards.push(currentLetter);
+        // Store letter AND the word that was active at the moment of flip
+        const wordAtFlip = gameState.cards.map((c, i) => c.letters[i === cardIndex ? c.currentIndex : c.currentIndex]).join('').toLowerCase();
+        card.flippedCards.push({ letter: currentLetter, word: wordAtFlip });
         card.currentIndex = (card.currentIndex + 1) % card.letters.length;
-        if (card.currentIndex === 0) card.flippedCards = [];
+        // NOTE: do NOT clear flippedCards on cycle — backward wrap needs to remain possible
 
         animatingCards.delete(cardIndex);
+        setActiveCard(cardIndex);
         renderCards();
       });
     }
@@ -1675,26 +2151,21 @@
     function flipCardBackward(cardIndex, duration) {
       if (animatingCards.has(cardIndex)) return;
       const card = gameState.cards[cardIndex];
-      if (!card.flippedCards || card.flippedCards.length === 0) return;
 
       animatingCards.add(cardIndex);
-      
+
       const now = performance.now();
-      
-      // If duration not provided (from swipe), calculate based on click speed
       if (duration === undefined) {
         const timeSinceLastClick = lastClickTimes[cardIndex] ? now - lastClickTimes[cardIndex] : 1000;
         lastClickTimes[cardIndex] = now;
-        
-        // Rapid clicking (< 400ms) = faster animation
-        if (timeSinceLastClick < 400) {
-          duration = 200;
-        } else {
-          duration = 320;
-        }
+        duration = timeSinceLastClick < 400 ? 200 : 320;
       }
-      
       lastClickTimes[cardIndex] = now;
+
+      // Always step one back sequentially (wraps z→b→a style)
+      const prevIndex = (card.currentIndex - 1 + card.letters.length) % card.letters.length;
+      const returningLetter = card.letters[prevIndex];
+      const hasFlippedCard = card.flippedCards && card.flippedCards.length > 0;
 
       const wrapper = document.getElementById('cardsWrapper');
       const scenes = wrapper.querySelectorAll('.card-scene');
@@ -1704,10 +2175,10 @@
       if (notebook && scene) {
         const cardH = notebook.offsetHeight;
 
-        const returningLetter = card.flippedCards[card.flippedCards.length - 1];
+        // Keep the scene completely frozen during backward animation —
+        // same principle as forward: static card unchanged, only flying card moves.
+        // State + re-render fire only in onDone once the card has fully landed.
 
-        // Scene stays completely frozen during the animation.
-        // Only update state + re-render once the card has fully landed.
         const flyCard = makeFlyCard(card, cardH, returningLetter, cardIndex);
         const letterEl = flyCard.querySelector('.fly-letter');
         letterEl.style.visibility = 'hidden';
@@ -1719,23 +2190,836 @@
         }, () => {
           if (flyCard.parentNode) flyCard.parentNode.removeChild(flyCard);
 
-          const lastFlipped = card.flippedCards.pop();
-          const letterIndex = card.letters.indexOf(lastFlipped);
-          if (letterIndex !== -1) card.currentIndex = letterIndex;
+          // Pop from flipped stack if available, otherwise just step index back
+          if (hasFlippedCard) {
+            card.flippedCards.pop();
+          }
+          card.currentIndex = prevIndex;
 
           animatingCards.delete(cardIndex);
+          setActiveCard(cardIndex);
           renderCards();
         });
       } else {
-        const lastFlipped = card.flippedCards.pop();
-        const letterIndex = card.letters.indexOf(lastFlipped);
-        if (letterIndex !== -1) card.currentIndex = letterIndex;
+        if (hasFlippedCard) card.flippedCards.pop();
+        card.currentIndex = prevIndex;
         animatingCards.delete(cardIndex);
+        setActiveCard(cardIndex);
         renderCards();
       }
     }
 
-    // Close dropdown when clicking outside
+    // ── Letter Tracing Page ────────────────────────────────────────────────
+
+    let tracingWord = '';
+    let tracingCtx = null;
+    let tracingDrawing = false;
+    let tracingLastX = 0, tracingLastY = 0;
+    let tracingCaseMode = 0; // 0=lower, 1=UPPER, 2=Sentence
+
+    const tracingColors = ['#e74c3c','#e67e22','#2ecc71','#3498db','#9b59b6'];
+    let tracingColorIdx = 0;
+
+    function cycleTracingCase() {
+      tracingCaseMode = (tracingCaseMode + 1) % 3;
+      const labels = ['aa','AA','Aa'];
+      document.getElementById('tracingCaseBtn').textContent = labels[tracingCaseMode];
+      stopTracingAnimation();
+      drawTracingPage();
+    }
+
+    function applyTracingCase(word) {
+      if (!word) return '';
+      if (tracingCaseMode === 1) return word.toUpperCase();
+      if (tracingCaseMode === 2) return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      return word.toLowerCase();
+    }
+
+    function openTracingPage() {
+      const page = document.getElementById('tracingPage');
+      page.style.display = 'flex';
+      const input = document.getElementById('tracingWordInput');
+      input.value = tracingWord || '';
+      document.getElementById('tracingLetterCount').textContent = (tracingWord||'').length + ' / 4';
+      setTimeout(() => { setupTracingCanvas(); }, 50);
+    }
+
+    function closeTracingPage() {
+      stopTracingAnimation();
+      document.getElementById('tracingPage').style.display = 'none';
+    }
+
+    function clearTracing() {
+      stopTracingAnimation();
+      tracingColorIdx = 0;
+      drawTracingPage();
+    }
+
+    function onTracingWordInput(val) {
+      stopTracingAnimation();
+      val = val.toLowerCase().replace(/[^a-z]/g, '').slice(0, 4);
+      tracingWord = val;
+      const input = document.getElementById('tracingWordInput');
+      input.value = val;
+      document.getElementById('tracingLetterCount').textContent = val.length + ' / 4';
+      tracingColorIdx = 0;
+      drawTracingPage();
+    }
+
+    function setupTracingCanvas() {
+      const canvas = document.getElementById('tracingCanvas');
+      const notebook = document.getElementById('tracingNotebook');
+      const rect = notebook.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      const w = rect.width - 12;
+      const h = rect.height - 12;
+      canvas.width  = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width  = w + 'px';
+      canvas.style.height = h + 'px';
+
+      tracingCtx = canvas.getContext('2d');
+      tracingCtx.scale(dpr, dpr);
+
+      drawTracingPage();
+      wireTracingEvents(canvas);
+    }
+
+    // Four-line notebook ruling matching reference image:
+    // l1 = ascender/top line (solid)
+    // l2 = midline / x-height (dashed)
+    // l3 = baseline (solid, slightly darker)
+    // l4 = descender line (solid)
+    function getTracingLines(H) {
+      const padTop    = 22;
+      const padBottom = 22;
+      const usable    = H - padTop - padBottom;
+      return {
+        l1: padTop,
+        l2: padTop + usable * 0.42,
+        l3: padTop + usable * 0.75,
+        l4: padTop + usable * 1.0
+      };
+    }
+
+    function drawTracingPage() {
+      const canvas = document.getElementById('tracingCanvas');
+      if (!tracingCtx) return;
+      const dpr = window.devicePixelRatio || 1;
+      const W = canvas.width  / dpr;
+      const H = canvas.height / dpr;
+      const ctx = tracingCtx;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // White paper
+      ctx.fillStyle = '#ffffff';
+      roundRect(ctx, 0, 0, W, H, 10);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.07)';
+      ctx.lineWidth = 1;
+      roundRect(ctx, 0, 0, W, H, 10);
+      ctx.stroke();
+
+      const { l1, l2, l3, l4 } = getTracingLines(H);
+      const marginL = 52;
+
+      // Four lines
+      drawRule(ctx, marginL, W - 16, l1, '#c4c8d8', false, 1);    // ascender — solid
+      drawRule(ctx, marginL, W - 16, l2, '#c4c8d8', true,  1);    // midline  — dashed
+      drawRule(ctx, marginL, W - 16, l3, '#9098b8', false, 1.5);  // baseline — solid darker
+      drawRule(ctx, marginL, W - 16, l4, '#c4c8d8', false, 1);    // descender — solid
+
+      // Red margin
+      ctx.strokeStyle = '#f08888';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(marginL, l1 - 8);
+      ctx.lineTo(marginL, l4 + 8);
+      ctx.stroke();
+
+      if (!tracingWord) return;
+
+      // Comic Sans cap-height ≈ 72% of em-size, ascender ≈ 80%
+      // Size so cap-height exactly spans l1→l3
+      const capZone  = l3 - l1;                 // pixels from ascender line to baseline
+      const fontSize = capZone / 0.72;          // em-size so caps fill l1→l3
+
+      ctx.font         = `400 ${fontSize}px 'Comic Sans MS', 'Chalkboard SE', cursive`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'alphabetic'; // letters sit on l3 (baseline)
+      ctx.fillStyle    = 'rgba(155,160,180,0.38)';
+
+      // Clip to the ruled area so nothing bleeds outside
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(marginL, l1 - 2, W - marginL - 14, l4 - l1 + 4);
+      ctx.clip();
+
+      if (tracingMode === 'alphabet') {
+        const ch    = tracingWord.toLowerCase();
+        const padX  = (W - marginL - 20) / 4;
+        ctx.fillText(ch.toUpperCase(), marginL + padX,     l3);
+        ctx.fillText(ch,               marginL + padX * 3, l3);
+      } else {
+        const displayWord = applyTracingCase(tracingWord);
+        const letters = displayWord.split('');
+        const n       = letters.length;
+        const totalW  = W - marginL - 20;
+        const slotW   = totalW / Math.max(n, 1);
+        letters.forEach((ch, i) => {
+          ctx.fillText(ch, marginL + slotW * i + slotW / 2, l3);
+        });
+      }
+
+      ctx.restore();
+    }
+
+    function drawRule(ctx, x1, x2, y, color, dashed, lw) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth   = lw;
+      ctx.setLineDash(dashed ? [7, 5] : []);
+      ctx.beginPath();
+      ctx.moveTo(x1, y);
+      ctx.lineTo(x2, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    function wireTracingEvents(canvas) {
+      // Remove old listeners by cloning
+      const fresh = canvas.cloneNode(true);
+      canvas.parentNode.replaceChild(fresh, canvas);
+      const c = document.getElementById('tracingCanvas');
+      tracingCtx = c.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      tracingCtx.scale(dpr, dpr);
+      drawTracingPage();
+
+      function getPos(e) {
+        const rect = c.getBoundingClientRect();
+        const src  = e.touches ? e.touches[0] : e;
+        return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+      }
+
+      function startDraw(e) {
+        e.preventDefault();
+        tracingDrawing = true;
+        const p = getPos(e);
+        tracingLastX = p.x; tracingLastY = p.y;
+        // Pick color based on which letter zone we're in
+        pickColorForPosition(p.x);
+      }
+
+      function moveDraw(e) {
+        e.preventDefault();
+        if (!tracingDrawing) return;
+        const p = getPos(e);
+        paintStroke(tracingLastX, tracingLastY, p.x, p.y);
+        tracingLastX = p.x; tracingLastY = p.y;
+      }
+
+      function endDraw(e) {
+        tracingDrawing = false;
+      }
+
+      c.addEventListener('mousedown',  startDraw);
+      c.addEventListener('mousemove',  moveDraw);
+      c.addEventListener('mouseup',    endDraw);
+      c.addEventListener('mouseleave', endDraw);
+      c.addEventListener('touchstart', startDraw, { passive: false });
+      c.addEventListener('touchmove',  moveDraw,  { passive: false });
+      c.addEventListener('touchend',   endDraw);
+    }
+
+    function pickColorForPosition(x) {
+      if (!tracingWord) return;
+      const canvas = document.getElementById('tracingCanvas');
+      const dpr = window.devicePixelRatio || 1;
+      const W = canvas.width / dpr;
+      const marginL = 48;
+      const n = tracingWord.length;
+      const slotW = (W - marginL - 24) / Math.max(n, 1);
+      const letterIdx = Math.floor((x - marginL) / slotW);
+      tracingColorIdx = Math.max(0, Math.min(letterIdx, tracingColors.length - 1));
+    }
+
+    function paintStroke(x1, y1, x2, y2) {
+      const ctx = tracingCtx;
+      if (!ctx) return;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = tracingColors[tracingColorIdx % tracingColors.length];
+      ctx.lineWidth   = 18;
+      ctx.lineCap     = 'round';
+      ctx.lineJoin    = 'round';
+      ctx.globalAlpha = 0.82;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // ── Tracing word list (manual) ─────────────────────────────────────────
+    let tracingWordList  = [];   // all words in the session
+    let tracingWordIndex = 0;    // currently active word index
+
+    function updateWheelDisplay() {
+      let display;
+      if (tracingMode === 'alphabet') {
+        const ch = ALPHABET_LIST[alphabetIndex] || 'a';
+        display = ch.toUpperCase() + ch.toLowerCase(); // e.g. "Aa"
+      } else {
+        display = tracingWordList[tracingWordIndex] || '—';
+      }
+      document.getElementById('tracingWheelWrap').textContent = display;
+    }
+
+    function setTracingWordFromList(idx) {
+      if (tracingWordList.length === 0) return;
+      tracingWordIndex = (idx + tracingWordList.length) % tracingWordList.length;
+      const word = tracingWordList[tracingWordIndex];
+      tracingWord = word.toLowerCase().replace(/[^a-z]/g, '').slice(0, 4);
+      // Only sync word input field in manual mode
+      if (tracingMode !== 'alphabet') {
+        const inp = document.getElementById('tracingWordInput');
+        if (inp) {
+          inp.value = tracingWord;
+          document.getElementById('tracingLetterCount').textContent = tracingWord.length + ' / 4';
+        }
+      }
+      updateWheelDisplay();
+      stopTracingAnimation();
+      drawTracingPage();
+    }
+
+    function tracingNav(dir) {
+      if (tracingMode === 'alphabet') {
+        alphabetIndex = (alphabetIndex + dir + ALPHABET_LIST.length) % ALPHABET_LIST.length;
+        tracingWord = ALPHABET_LIST[alphabetIndex];
+        updateWheelDisplay();
+        stopTracingAnimation();
+        drawTracingPage();
+      } else {
+        if (tracingWordList.length === 0) return;
+        setTracingWordFromList(tracingWordIndex + dir);
+      }
+    }
+
+    // ── Manual Word Panel ──────────────────────────────────────────────────
+    let pendingManualWords = [];
+
+    function openManualWordPanel() {
+      // pendingManualWords retains its own state — never overwritten by alphabet mode
+      renderManualList();
+      document.getElementById('manualWordPanel').style.display = 'flex';
+      document.getElementById('manualWordEntry').value = '';
+      setTimeout(() => document.getElementById('manualWordEntry').focus(), 100);
+    }
+
+    function closeManualWordPanel() {
+      document.getElementById('manualWordPanel').style.display = 'none';
+    }
+
+    function addManualWord() {
+      const inp = document.getElementById('manualWordEntry');
+      const word = inp.value.trim().toLowerCase().replace(/[^a-z]/g, '').slice(0, 4);
+      if (!word) return;
+      pendingManualWords.push(word);
+      inp.value = '';
+      inp.focus();
+      renderManualList();
+    }
+
+    function removeManualWord(idx) {
+      pendingManualWords.splice(idx, 1);
+      renderManualList();
+    }
+
+    function renderManualList() {
+      const container = document.getElementById('manualWordList');
+      if (pendingManualWords.length === 0) {
+        container.innerHTML = '<div style="color:#bbb;font-size:0.82rem;text-align:center;padding:12px 0;">No words yet — type one above</div>';
+        return;
+      }
+      container.innerHTML = '';
+      pendingManualWords.forEach((word, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;background:#f9f4ec;border:1.5px solid #e0d0b8;border-radius:8px;padding:6px 10px;';
+        const lbl = document.createElement('span');
+        lbl.style.cssText = "flex:1;font-family:'Comic Sans MS',cursive;font-size:0.95rem;font-weight:700;color:#5a4a32;";
+        lbl.textContent = word;
+        const del = document.createElement('button');
+        del.style.cssText = 'background:none;border:none;color:#c09080;font-size:1.1rem;cursor:pointer;padding:0 2px;';
+        del.textContent = '×';
+        del.onclick = () => removeManualWord(i);
+        row.appendChild(lbl);
+        row.appendChild(del);
+        container.appendChild(row);
+      });
+    }
+
+    // Separate alphabet list — never mixed with manual
+    const ALPHABET_LIST = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    let tracingMode = 'manual'; // 'manual' | 'alphabet'
+    let alphabetIndex = 0;
+
+    function activateAlphabetMode() {
+      tracingMode      = 'alphabet';
+      alphabetIndex    = 0;
+      stopTracingAnimation();
+      updateTracingModeButtons('alphabet');
+      // Show current alphabet letter on canvas
+      tracingWord = ALPHABET_LIST[0];
+      updateWheelDisplay();
+      drawTracingPage();
+    }
+
+    function updateTracingModeButtons(active) {
+      const manBtn  = document.getElementById('manualModeBtn');
+      const alpBtn  = document.getElementById('alphabetModeBtn');
+      const caseBtn = document.getElementById('tracingCaseBtn');
+      const wordLbl = document.getElementById('tracingWordLabel');
+      const wordInp = document.getElementById('tracingWordInput');
+      const wordCnt = document.getElementById('tracingLetterCount');
+      if (!manBtn || !alpBtn) return;
+
+      if (active === 'alphabet') {
+        alpBtn.style.background = '#8b6f47';
+        alpBtn.style.color      = 'white';
+        alpBtn.style.border     = 'none';
+        manBtn.style.background = 'transparent';
+        manBtn.style.color      = '#8b6f47';
+        manBtn.style.border     = '2px solid #8b6f47';
+        // Hide word input field
+        if (wordLbl) wordLbl.style.display = 'none';
+        if (wordInp) wordInp.style.display = 'none';
+        if (wordCnt) wordCnt.style.display = 'none';
+        // Disable case button
+        if (caseBtn) { caseBtn.disabled = true; caseBtn.style.opacity = '0.4'; caseBtn.style.cursor = 'default'; }
+      } else {
+        manBtn.style.background = '#8b6f47';
+        manBtn.style.color      = 'white';
+        manBtn.style.border     = 'none';
+        alpBtn.style.background = 'transparent';
+        alpBtn.style.color      = '#8b6f47';
+        alpBtn.style.border     = '2px solid #8b6f47';
+        // Show word input field
+        if (wordLbl) wordLbl.style.display = '';
+        if (wordInp) wordInp.style.display = '';
+        if (wordCnt) wordCnt.style.display = '';
+        // Re-enable case button
+        if (caseBtn) { caseBtn.disabled = false; caseBtn.style.opacity = '1'; caseBtn.style.cursor = 'pointer'; }
+      }
+    }
+
+    function copyManualWords() {
+      if (pendingManualWords.length === 0) return;
+      const text = pendingManualWords.join(', ');
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('manualCopyBtn');
+        const orig = btn.textContent;
+        btn.textContent = '✓ Copied!';
+        btn.style.background = '#d4f0d4';
+        btn.style.borderColor = '#4CAF50';
+        btn.style.color = '#2e7d32';
+        setTimeout(() => {
+          btn.textContent = orig;
+          btn.style.background = '#f0e8dc';
+          btn.style.borderColor = '#c8b89a';
+          btn.style.color = '#8b6f47';
+        }, 1800);
+      }).catch(() => {
+        // Fallback for browsers that block clipboard API
+        const ta = document.createElement('textarea');
+        ta.value = pendingManualWords.join(', ');
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        alert('Copied to clipboard!\n\n' + pendingManualWords.join(', '));
+      });
+    }
+
+    function showManualPasteArea() {
+      const area = document.getElementById('manualPasteArea');
+      const isVisible = area.style.display !== 'none';
+      area.style.display = isVisible ? 'none' : 'flex';
+      if (!isVisible) {
+        document.getElementById('manualPasteInput').focus();
+      }
+    }
+
+    function importPastedWords() {
+      const raw = document.getElementById('manualPasteInput').value.trim();
+      if (!raw) return;
+
+      // Parse comma-separated list — each token trimmed, lowercase, letters only, max 4 chars
+      const imported = raw
+        .split(',')
+        .map(w => w.trim().toLowerCase().replace(/[^a-z]/g, '').slice(0, 4))
+        .filter(w => w.length > 0);
+
+      if (imported.length === 0) {
+        alert('No valid words found.\n\nFormat: word1, word2, word3');
+        return;
+      }
+
+      // Merge without duplicates
+      imported.forEach(w => {
+        if (!pendingManualWords.includes(w)) pendingManualWords.push(w);
+      });
+
+      document.getElementById('manualPasteInput').value = '';
+      document.getElementById('manualPasteArea').style.display = 'none';
+      renderManualList();
+    }
+
+    function confirmManualWords() {
+      if (pendingManualWords.length === 0) return;
+      tracingMode      = 'manual';
+      tracingWordList  = [...pendingManualWords];
+      tracingWordIndex = 0;
+      closeManualWordPanel();
+      updateTracingModeButtons('manual');
+      setTracingWordFromList(0);
+    }
+
+    // ── Scroll Wheel Picker ────────────────────────────────────────────────
+    const WHEEL_ITEM_H = 44;
+    let wheelScrollTimeout = null;
+    let wheelPendingIndex  = 0;
+
+    function openScrollWheel() {
+      const list = tracingMode === 'alphabet' ? ALPHABET_LIST : tracingWordList;
+      if (list.length === 0) return;
+      wheelPendingIndex = tracingMode === 'alphabet' ? alphabetIndex : tracingWordIndex;
+      buildWheelItems();
+      document.getElementById('scrollWheelOverlay').style.display = 'flex';
+      requestAnimationFrame(() => scrollWheelTo(wheelPendingIndex, false));
+    }
+
+    function closeScrollWheel() {
+      document.getElementById('scrollWheelOverlay').style.display = 'none';
+    }
+
+    function confirmScrollWheel() {
+      if (tracingMode === 'alphabet') {
+        alphabetIndex = wheelPendingIndex;
+        tracingWord   = ALPHABET_LIST[alphabetIndex];
+        updateWheelDisplay();
+        stopTracingAnimation();
+        drawTracingPage();
+      } else {
+        setTracingWordFromList(wheelPendingIndex);
+      }
+      closeScrollWheel();
+    }
+
+    function buildWheelItems() {
+      const container = document.getElementById('wheelItems');
+      container.innerHTML = '';
+      const list   = tracingMode === 'alphabet' ? ALPHABET_LIST : tracingWordList;
+      const curIdx = tracingMode === 'alphabet' ? alphabetIndex : tracingWordIndex;
+      list.forEach((word, i) => {
+        const item = document.createElement('div');
+        item.style.cssText = `height:${WHEEL_ITEM_H}px;display:flex;align-items:center;justify-content:center;font-family:'Comic Sans MS',cursive;font-size:1.15rem;font-weight:700;color:#5a4a32;cursor:pointer;transition:font-size 0.15s,color 0.15s;`;
+        // In alphabet mode show "Aa", in manual show the word
+        item.textContent = tracingMode === 'alphabet'
+          ? word.toUpperCase() + word.toLowerCase()
+          : word;
+        item.dataset.index = i;
+        item.onclick = () => { wheelPendingIndex = i; scrollWheelTo(i, true); };
+        container.appendChild(item);
+      });
+    }
+
+    function scrollWheelTo(idx, animate) {
+      const list = document.getElementById('wheelList');
+      const target = idx * WHEEL_ITEM_H;
+      if (animate) {
+        list.scrollTo({ top: target, behavior: 'smooth' });
+      } else {
+        list.scrollTop = target;
+      }
+      highlightWheelItem(idx);
+    }
+
+    function highlightWheelItem(idx) {
+      document.querySelectorAll('#wheelItems > div').forEach((el, i) => {
+        const active = i === idx;
+        el.style.fontSize    = active ? '1.3rem' : '1rem';
+        el.style.color       = active ? '#8b6f47' : '#a09080';
+        el.style.fontWeight  = active ? '700' : '400';
+      });
+    }
+
+    function onWheelScroll() {
+      const list = document.getElementById('wheelList');
+      const idx  = Math.round(list.scrollTop / WHEEL_ITEM_H);
+      wheelPendingIndex = Math.max(0, Math.min(idx, tracingWordList.length - 1));
+      highlightWheelItem(wheelPendingIndex);
+      // Snap after scroll stops
+      clearTimeout(wheelScrollTimeout);
+      wheelScrollTimeout = setTimeout(() => {
+        scrollWheelTo(wheelPendingIndex, true);
+      }, 120);
+    }
+
+    // Hide scrollbar on wheel list
+    const wheelStyle = document.createElement('style');
+    wheelStyle.textContent = '#wheelList::-webkit-scrollbar{display:none;}';
+    document.head.appendChild(wheelStyle);
+    let tracingAnimationId = null;
+    let tracingAnimationRunning = false;
+
+    // Stroke order hints per letter — list of {startX, startY} fractions (0-1) 
+    // within the letter's bounding box, defining stroke start points in order.
+    // We'll use these to seed a path-tracing algorithm on the actual rendered pixels.
+    const strokeOrderHints = {
+      a: [[0.7,0.3],[0.3,0.3]], b: [[0.2,0.1],[0.2,0.6]],
+      c: [[0.8,0.3]], d: [[0.8,0.1],[0.8,0.6]],
+      e: [[0.2,0.5]], f: [[0.5,0.1]], g: [[0.8,0.3],[0.8,0.7]],
+      h: [[0.2,0.1],[0.2,0.6]], i: [[0.5,0.2]],
+      j: [[0.6,0.2]], k: [[0.2,0.1],[0.6,0.4]],
+      l: [[0.4,0.1]], m: [[0.1,0.3],[0.5,0.3],[0.8,0.3]],
+      n: [[0.2,0.3],[0.7,0.3]], o: [[0.5,0.2]],
+      p: [[0.2,0.3],[0.2,0.8]], q: [[0.7,0.3],[0.8,0.3]],
+      r: [[0.2,0.3]], s: [[0.7,0.2]],
+      t: [[0.5,0.1],[0.2,0.4]], u: [[0.2,0.3],[0.7,0.3]],
+      v: [[0.2,0.2],[0.7,0.2]], w: [[0.1,0.2],[0.35,0.2],[0.6,0.2],[0.85,0.2]],
+      x: [[0.2,0.2],[0.7,0.2]], y: [[0.2,0.2],[0.7,0.2]],
+      z: [[0.2,0.2]]
+    };
+
+    function getLetterPixelPath(letter, slotX, slotW, baseLine, fontSize) {
+      // Render letter to offscreen canvas, extract ordered pixel path
+      const size = Math.ceil(fontSize * 1.6);
+      const off = document.createElement('canvas');
+      off.width = off.height = size * 2;
+      const ctx = off.getContext('2d');
+      ctx.font = `400 ${fontSize * 2.7}px 'Comic Sans MS', 'Chalkboard SE', cursive`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = '#000';
+      ctx.fillText(letter, size, size * 1.3);
+
+      const imgData = ctx.getImageData(0, 0, off.width, off.height);
+      const data = imgData.data;
+      const w = off.width, h = off.height;
+
+      // Collect all dark pixels
+      const pixels = [];
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const a = data[(y * w + x) * 4 + 3];
+          if (a > 80) pixels.push([x, y]);
+        }
+      }
+      if (pixels.length === 0) return [];
+
+      // Get bounding box
+      const xs = pixels.map(p => p[0]), ys = pixels.map(p => p[1]);
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      const minY = Math.min(...ys), maxY = Math.max(...ys);
+      const bw = maxX - minX || 1, bh = maxY - minY || 1;
+
+      // Build visited set for path tracing
+      const visited = new Set(pixels.map(([x, y]) => y * w + x));
+
+      // Find starting pixel using hint
+      const hints = strokeOrderHints[letter] || [[0.5, 0.2]];
+      const hint = hints[0];
+      const startPxX = minX + hint[0] * bw;
+      const startPxY = minY + hint[1] * bh;
+
+      // Find nearest dark pixel to hint
+      let best = pixels[0], bestDist = Infinity;
+      for (const [px, py] of pixels) {
+        const d = (px - startPxX) ** 2 + (py - startPxY) ** 2;
+        if (d < bestDist) { bestDist = d; best = [px, py]; }
+      }
+
+      // Greedy nearest-neighbour path through all pixels (sampled for performance)
+      // Subsample pixels to ~200 points max
+      const step = Math.max(1, Math.floor(pixels.length / 180));
+      const sampled = pixels.filter((_, i) => i % step === 0);
+      const sampledSet = new Set(sampled.map(([x, y]) => y * w + x));
+
+      const path = [];
+      let cur = best;
+      const remaining = new Set(sampled.map(([x, y]) => `${x},${y}`));
+      remaining.delete(`${cur[0]},${cur[1]}`);
+      path.push(cur);
+
+      while (remaining.size > 0) {
+        let nearestD = Infinity, nearest = null;
+        // Check nearby grid first for speed
+        const [cx, cy] = cur;
+        for (let dy = -12; dy <= 12; dy++) {
+          for (let dx = -12; dx <= 12; dx++) {
+            const key = `${cx+dx},${cy+dy}`;
+            if (remaining.has(key)) {
+              const d = dx*dx + dy*dy;
+              if (d < nearestD) { nearestD = d; nearest = [cx+dx, cy+dy]; }
+            }
+          }
+        }
+        if (!nearest) {
+          // Jump to any remaining (new stroke)
+          nearest = [...remaining][0].split(',').map(Number);
+        }
+        remaining.delete(`${nearest[0]},${nearest[1]}`);
+        path.push(nearest);
+        cur = nearest;
+      }
+
+      // Map from offscreen coords back to canvas coords
+      return path.map(([px, py]) => ({
+        x: slotX + ((px - minX) / bw - 0.5) * (slotW * 0.65),
+        y: baseLine - fontSize * 0.9 + ((py - minY) / bh) * fontSize * 1.1
+      }));
+    }
+
+    function playTracingAnimation() {
+      if (!tracingWord || tracingWord.length === 0) return;
+      if (tracingAnimationRunning) {
+        stopTracingAnimation();
+        return;
+      }
+
+      const btn = document.getElementById('tracingPlayBtn');
+      btn.textContent = '⏹ Stop';
+      tracingAnimationRunning = true;
+
+      // Clear and redraw base
+      drawTracingPage();
+
+      const canvas = document.getElementById('tracingCanvas');
+      const dpr = window.devicePixelRatio || 1;
+      const W = canvas.width / dpr;
+      const H = canvas.height / dpr;
+      const ctx = tracingCtx;
+
+      const { l1, l2, l3, l4 } = getTracingLines(H);
+      const baseLine = l3;
+      const fontSize = (l3 - l1) / 0.72;
+
+      const marginL = 52;
+      const totalW  = W - marginL - 20;
+
+      // Build letter list to animate
+      let animLetters;
+      if (tracingMode === 'alphabet') {
+        const ch = tracingWord.toLowerCase();
+        const padX = totalW / 4;
+        animLetters = [
+          { ch: ch.toUpperCase(), cx: marginL + padX,     slotW: totalW / 2 },
+          { ch: ch,               cx: marginL + padX * 3, slotW: totalW / 2 }
+        ];
+      } else {
+        const displayWord = applyTracingCase(tracingWord);
+        const n = displayWord.length;
+        const slotW = totalW / n;
+        animLetters = displayWord.split('').map((ch, i) => ({
+          ch, cx: marginL + slotW * i + slotW / 2, slotW
+        }));
+      }
+
+      // Build full path across all letters
+      const allPaths = [];
+      animLetters.forEach(({ ch, cx, slotW }, i) => {
+        const pts = getLetterPixelPath(ch, cx, slotW, baseLine, fontSize);
+        if (pts.length > 0) allPaths.push({ pts, color: tracingColors[i % tracingColors.length] });
+      });
+
+      if (allPaths.length === 0) { stopTracingAnimation(); return; }
+
+      // Flatten into single sequence with color tags
+      const sequence = [];
+      allPaths.forEach(({ pts, color }) => {
+        pts.forEach((pt, j) => sequence.push({ ...pt, color, newStroke: j === 0 }));
+      });
+
+      let idx = 0;
+      const speed = 2; // points per frame
+
+      function step() {
+        if (!tracingAnimationRunning || idx >= sequence.length) {
+          stopTracingAnimation();
+          return;
+        }
+
+        for (let s = 0; s < speed && idx < sequence.length; s++, idx++) {
+          const cur  = sequence[idx];
+          const prev = sequence[idx - 1];
+
+          if (prev && !cur.newStroke) {
+            // Draw stroke segment
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = cur.color;
+            ctx.lineWidth   = 16;
+            ctx.lineCap     = 'round';
+            ctx.lineJoin    = 'round';
+            ctx.globalAlpha = 0.85;
+            ctx.beginPath();
+            ctx.moveTo(prev.x, prev.y);
+            ctx.lineTo(cur.x, cur.y);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+
+          // Draw animated dot at current position
+          // First erase old dot area by redrawing nothing — dot is drawn last each frame
+        }
+
+        // Draw leading dot on top
+        const cur = sequence[Math.min(idx, sequence.length - 1)];
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(cur.x, cur.y, 11, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = cur.color;
+        ctx.beginPath();
+        ctx.arc(cur.x, cur.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        tracingAnimationId = requestAnimationFrame(step);
+      }
+
+      tracingAnimationId = requestAnimationFrame(step);
+    }
+
+    function stopTracingAnimation() {
+      tracingAnimationRunning = false;
+      if (tracingAnimationId) { cancelAnimationFrame(tracingAnimationId); tracingAnimationId = null; }
+      const btn = document.getElementById('tracingPlayBtn');
+      if (btn) btn.textContent = '▶ Play';
+    }
+    window.addEventListener('resize', () => {
+      if (document.getElementById('tracingPage').style.display !== 'none') {
+        setTimeout(setupTracingCanvas, 100);
+      }
+    });
     document.addEventListener('click', function(event) {
       if (!event.target.closest('.dropdown')) {
         document.getElementById('dropdownContent').classList.remove('show');
@@ -1774,29 +3058,6 @@
       return confirmationMessage;
     });
 
-    // Global paste event listener for catching native paste from iOS context menu
-    document.addEventListener('paste', (e) => {
-      const items = e.clipboardData?.items;
-      
-      if (items) {
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].type.startsWith('image/')) {
-            e.preventDefault();
-            const blob = items[i].getAsFile();
-            const reader = new FileReader();
-            
-            reader.onload = (event) => {
-              const currentWord = getCurrentWord();
-              wordPhotos[currentWord] = event.target.result;
-              renderCards();
-            };
-            
-            reader.readAsDataURL(blob);
-            break;
-          }
-        }
-      }
-    });
   </script>
 </body>
 </html>
