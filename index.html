@@ -10,11 +10,7 @@
 <title>FlashABC - Notebook Flip Card Builder</title>
 <style>
   /* Rotate portrait devices into landscape */
-  @media screen and (orientation: portrait) {
-    #orientationOverlay {
-      display: flex !important;
-    }
-  }
+  /* Orientation overlay shown via JS only */
 
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -1068,22 +1064,39 @@
         style="font-family:'Comic Sans MS', 'Chalkboard SE', cursive;font-size:1rem;font-weight:700;color:#5a4a32;padding:4px 9px;border:2px solid #c8b89a;border-radius:8px;background:white;outline:none;width:80px;"
         oninput="onTracingWordInput(this.value)">
 
-      <!-- Spacer -->
-      <div style="flex:1;"></div>
+      <!-- + | Select | aa — grouped together right after Word field -->
+      <button id="tracingAddWordsBtn" onclick="openManualWordPanel()" title="Manual Word List" style="background:transparent;border:2px solid #8b6f47;color:#8b6f47;font-size:1rem;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:34px;height:34px;line-height:1;">+</button>
 
-      <!-- Clear button (hidden until something drawn) -->
-      <button id="tracingEraseBtn" onclick="clearTracing()" style="display:none;background:transparent;border:2px solid #8b6f47;color:#8b6f47;font-size:0.78rem;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer;gap:5px;align-items:center;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b6f47" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px;">
+      <button id="tracingWheelWrap" onclick="openScrollWheel()" style="cursor:pointer;background:transparent;border:2px solid #8b6f47;color:#8b6f47;font-size:0.78rem;font-weight:700;padding:5px 11px;border-radius:8px;user-select:none;height:34px;">Select</button>
+
+      <!-- Shuffle button for Alphabet (beside Select, hidden in DIY) -->
+      <button id="tracingShuffleAlpha" onclick="toggleTracingShuffle()" title="Shuffle" style="display:none;background:transparent;border:2px solid #8b6f47;color:#8b6f47;padding:5px 8px;border-radius:8px;cursor:pointer;height:34px;display:none;align-items:center;justify-content:center;">
+        <svg id="shuffleIconAlpha" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b6f47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+          <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+        </svg>
+      </button>
+
+      <button id="tracingCaseBtn" onclick="cycleTracingCase()" style="background:transparent;border:2px solid #8b6f47;color:#8b6f47;font-size:0.78rem;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer;min-width:34px;height:34px;">aa</button>
+
+      <!-- Shuffle button for DIY (beside aa, hidden in Alphabet) -->
+      <button id="tracingShuffleDIY" onclick="toggleTracingShuffle()" title="Shuffle" style="background:transparent;border:2px solid #8b6f47;color:#8b6f47;padding:5px 8px;border-radius:8px;cursor:pointer;height:34px;display:flex;align-items:center;justify-content:center;">
+        <svg id="shuffleIconDIY" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b6f47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+          <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+        </svg>
+      </button>
+
+      <!-- Clear button beside case button (hidden until something drawn) -->
+      <button id="tracingEraseBtn" onclick="clearTracing()" style="display:none;background:#ffe0e0;border:2px solid #e8707a;color:#c0392b;font-size:0.78rem;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer;align-items:center;gap:4px;height:34px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;">
           <path d="M20 20H7L3 16l10-10 7 7-3.5 3.5"/>
           <path d="M6.5 17.5l3-3"/>
         </svg>Clear
       </button>
 
-      <!-- Case button -->
-      <button id="tracingCaseBtn" onclick="cycleTracingCase()" style="background:transparent;border:2px solid #8b6f47;color:#8b6f47;font-size:0.78rem;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer;min-width:40px;">aa</button>
-
-      <!-- Select button -->
-      <button id="tracingWheelWrap" onclick="openScrollWheel()" style="cursor:pointer;background:transparent;border:2px solid #8b6f47;color:#8b6f47;font-size:0.78rem;font-weight:700;padding:5px 11px;border-radius:8px;user-select:none;">Select</button>
+      <!-- Spacer -->
+      <div style="flex:1;"></div>
     </div>
 
     <!-- Notebook lines area -->
@@ -1160,8 +1173,12 @@
       </div>
 
       <!-- Tool toggle — top-left inside notepad -->
-      <div id="tracingToolToggle" style="position:absolute;left:50px;top:10px;z-index:15;display:flex;border-radius:12px;overflow:hidden;border:2px solid #c8b89a;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
-        <!-- Pencil side -->
+      <div id="tracingToolToggle" style="position:absolute;left:20px;bottom:20px;top:auto;z-index:15;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;border:2px solid #c8b89a;box-shadow:0 2px 6px rgba(0,0,0,0.15);cursor:grab;touch-action:none;">
+        <!-- Drag handle -->
+        <div id="tracingToolHandle" style="background:#e8ddd0;height:14px;display:flex;align-items:center;justify-content:center;cursor:grab;flex-shrink:0;">
+          <div style="width:28px;height:3px;background:#b0a090;border-radius:2px;"></div>
+        </div>
+        <div style="display:flex;">        <!-- Pencil side -->
         <button id="tracingToolDraw" onclick="setTracingTool('draw')" style="
           width:52px;height:46px;border:none;cursor:pointer;
           background:#fff3c0;
@@ -1198,8 +1215,8 @@
             </g>
           </svg>
         </button>
-      </div>
-    </div>
+        </div><!-- end inner flex row -->
+      </div><!-- end tracingToolToggle -->
 
   </div>
 
@@ -2373,8 +2390,39 @@
     let tracingLastX = 0, tracingLastY = 0;
     let tracingCaseMode = 0; // 0=lower, 1=UPPER, 2=Sentence
 
-    const tracingColors = ['#e74c3c','#e67e22','#2ecc71','#3498db','#9b59b6'];
-    let tracingColorIdx = 0;
+    const tracingColors = [
+      '#e74c3c', // Red
+      '#2980b9', // Blue
+      '#f1c40f', // Yellow
+      '#27ae60', // Green
+      '#2c2c2c', // Black
+      '#e67e22', // Orange
+      '#8e44ad', // Purple
+      '#e91e8c', // Pink
+      '#795548', // Brown
+      '#757575', // Gray
+    ];
+    let tracingColorIdx   = 0;
+    let tracingColorQueue = [];
+
+    function refillColorQueue() {
+      // Fisher-Yates shuffle
+      const arr = tracingColors.map((_, i) => i);
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      // Avoid repeating the last colour from the previous round
+      if (tracingColorQueue.length === 0 && arr[0] === tracingColorIdx) {
+        arr.push(arr.shift());
+      }
+      tracingColorQueue = arr;
+    }
+
+    function randomTracingColor() {
+      if (tracingColorQueue.length === 0) refillColorQueue();
+      tracingColorIdx = tracingColorQueue.shift();
+    }
 
     function cycleTracingCase() {
       tracingCaseMode = (tracingCaseMode + 1) % 3;
@@ -2404,8 +2452,8 @@
     }
 
     function clearTracing() {
-      tracingColorIdx = 0;
       tracingStrokes  = [];
+      randomTracingColor();
       tracingToolMode = 'draw';
       setTracingTool('draw');
       drawTracingPage();
@@ -2416,8 +2464,7 @@
       tracingWord = val;
       const input = document.getElementById('tracingWordInput');
       input.value = val;
-      
-      tracingColorIdx = 0;
+      randomTracingColor();
       drawTracingPage();
     }
 
@@ -2694,6 +2741,8 @@
     }
 
     function pickColorForPosition(x) {
+      // In alphabet mode use the randomly assigned colour — don't override it by position
+      if (tracingMode === 'alphabet') return;
       if (!tracingWord) return;
       const canvas = document.getElementById('tracingCanvas');
       const dpr = window.devicePixelRatio || 1;
@@ -2818,11 +2867,12 @@
         }
       }
       updateWheelDisplay();
+      randomTracingColor();
       drawTracingPage();
     }
 
     function tracingNavFlash(dir) {
-      tracingNav(dir);
+      tracingNavShuffled(dir);
       const id = dir === -1 ? 'tracingFlashLeft' : 'tracingFlashRight';
       const el = document.getElementById(id);
       if (!el) return;
@@ -2842,6 +2892,7 @@
         alphabetIndex = (alphabetIndex + dir + ALPHABET_LIST.length) % ALPHABET_LIST.length;
         tracingWord = ALPHABET_LIST[alphabetIndex];
         updateWheelDisplay();
+      randomTracingColor();
         drawTracingPage();
       } else {
         if (tracingWordList.length === 0) return;
@@ -2854,24 +2905,20 @@
 
     function switchToManualMode() {
       if (tracingMode !== 'manual') {
-        // First press from Alphabet: switch mode, clear canvas, don't open panel
         tracingMode = 'manual';
         updateTracingModeButtons('manual');
         if (tracingWordList.length > 0) {
           setTracingWordFromList(tracingWordIndex);
         } else {
-          // No manual words yet — clear the canvas completely
           tracingWord = '';
           const inp = document.getElementById('tracingWordInput');
           if (inp) { inp.value = ''; }
-          
           updateWheelDisplay();
+      randomTracingColor();
           drawTracingPage();
         }
-      } else {
-        // Already in manual mode: open the panel to edit the list
-        openManualWordPanel();
       }
+      // Panel only opens via the + button
     }
 
     function openManualWordPanel() {
@@ -2935,6 +2982,7 @@
       tracingWord   = ALPHABET_LIST[0];
       updateTracingModeButtons('alphabet');
       updateWheelDisplay();
+      randomTracingColor();
       drawTracingPage();
     }
 
@@ -2962,8 +3010,15 @@
         // Hide word input field
         if (wordLbl) wordLbl.style.display = 'none';
         if (wordInp) wordInp.style.display = 'none';
-        // Hide case button in alphabet mode
+        // Hide case, + and DIY shuffle in alphabet mode; show alpha shuffle
         if (caseBtn) caseBtn.style.display = 'none';
+        const addBtn = document.getElementById('tracingAddWordsBtn');
+        if (addBtn) addBtn.style.display = 'none';
+        const shuffleDIY   = document.getElementById('tracingShuffleDIY');
+        const shuffleAlpha = document.getElementById('tracingShuffleAlpha');
+        if (shuffleDIY)   shuffleDIY.style.display   = 'none';
+        if (shuffleAlpha) shuffleAlpha.style.display  = 'flex';
+        resetShuffle();
       } else {
         // DIY tab: active (elevated, cream)
         manBtn.style.background  = '#f5ece0';
@@ -2979,8 +3034,15 @@
         // Show word input field
         if (wordLbl) wordLbl.style.display = '';
         if (wordInp) wordInp.style.display = '';
-        // Show case button in DIY mode
+        // Show case and + buttons in DIY mode; show DIY shuffle, hide alpha shuffle
         if (caseBtn) { caseBtn.style.display = ''; caseBtn.disabled = false; caseBtn.style.opacity = '1'; caseBtn.style.cursor = 'pointer'; }
+        const addBtn = document.getElementById('tracingAddWordsBtn');
+        if (addBtn) addBtn.style.display = 'flex';
+        const shuffleDIY2   = document.getElementById('tracingShuffleDIY');
+        const shuffleAlpha2 = document.getElementById('tracingShuffleAlpha');
+        if (shuffleDIY2)   shuffleDIY2.style.display  = tracingWordList.length > 0 ? 'flex' : 'none';
+        if (shuffleAlpha2) shuffleAlpha2.style.display = 'none';
+        resetShuffle();
       }
     }
 
@@ -3087,9 +3149,169 @@
       closeManualWordPanel();
       updateTracingModeButtons('manual');
       setTracingWordFromList(0);
+      // Show shuffle button now that list has words
+      const shuffleBtn = document.getElementById('tracingShuffleDIY');
+      if (shuffleBtn) shuffleBtn.style.display = 'flex';
     }
 
-    // ── Scroll Wheel Picker ────────────────────────────────────────────────
+    // ── Shuffle ───────────────────────────────────────────────────────────
+    let tracingShuffled     = false;
+    let tracingShuffledList = [];
+
+    const ICON_SHUFFLE   = `<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>`;
+    const ICON_UNSHUFFLE = `<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>`;
+
+    function updateShuffleBtn() {
+      ['tracingShuffleAlpha','tracingShuffleDIY'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        const svg = btn.querySelector('svg');
+        if (!svg) return;
+        svg.innerHTML = tracingShuffled ? ICON_UNSHUFFLE : ICON_SHUFFLE;
+        svg.setAttribute('stroke', tracingShuffled ? 'white' : '#8b6f47');
+        btn.style.background  = tracingShuffled ? '#8b6f47' : 'transparent';
+        btn.style.borderColor = '#8b6f47';
+      });
+    }
+
+    function fisherYates(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function toggleTracingShuffle() {
+      tracingShuffled = !tracingShuffled;
+      if (tracingShuffled) {
+        const src = tracingMode === 'alphabet' ? ALPHABET_LIST : tracingWordList;
+        tracingShuffledList = fisherYates(src);
+        // DIY only: jump to first item; Alphabet: stay on current letter
+        if (tracingMode !== 'alphabet') {
+          tracingWordIndex = tracingWordList.indexOf(tracingShuffledList[0]);
+          randomTracingColor();
+          drawTracingPage();
+        }
+      } else {
+        tracingShuffledList = [];
+      }
+      updateShuffleBtn();
+      if (tracingShuffled && tracingMode === 'alphabet') {
+        // No redraw — just reorder future navigation silently
+        return;
+      }
+      if (!tracingShuffled) {
+        drawTracingPage();
+      }
+    }
+
+    function resetShuffle() {
+      tracingShuffled     = false;
+      tracingShuffledList = [];
+      updateShuffleBtn();
+    }
+
+    // Wrap tracingNav to follow shuffled order when active
+    const _origNav = window.tracingNav;
+    function tracingNavShuffled(dir) {
+      if (!tracingShuffled || tracingShuffledList.length === 0) {
+        tracingNav(dir);
+        return;
+      }
+      const list = tracingShuffledList;
+      if (tracingMode === 'alphabet') {
+        const idx  = list.indexOf(tracingWord);
+        const next = (idx + dir + list.length) % list.length;
+        tracingWord   = list[next];
+        alphabetIndex = ALPHABET_LIST.indexOf(tracingWord);
+      } else {
+        const cur  = tracingWordList[tracingWordIndex] || '';
+        const idx  = list.indexOf(cur);
+        const next = (idx + dir + list.length) % list.length;
+        tracingWordIndex = tracingWordList.indexOf(list[next]);
+      }
+      updateWheelDisplay();
+      randomTracingColor();
+      drawTracingPage();
+    }
+
+    // ── Draggable tool toggle ──────────────────────────────────────────────
+    (function() {
+      let dragging = false, startX, startY, origLeft, origTop;
+
+      function getNotebook() { return document.getElementById('tracingNotebook'); }
+
+      function onDragStart(e) {
+        const toggle = document.getElementById('tracingToolToggle');
+        const notebook = getNotebook();
+        if (!toggle || !notebook) return;
+        dragging = true;
+        toggle.style.cursor = 'grabbing';
+        const client = e.touches ? e.touches[0] : e;
+        startX = client.clientX;
+        startY = client.clientY;
+        origLeft = parseInt(toggle.style.left) || 50;
+        origTop  = parseInt(toggle.style.top)  || 10;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      function onDragMove(e) {
+        if (!dragging) return;
+        const toggle = document.getElementById('tracingToolToggle');
+        const notebook = getNotebook();
+        if (!toggle || !notebook) return;
+        const client = e.touches ? e.touches[0] : e;
+        const dx = client.clientX - startX;
+        const dy = client.clientY - startY;
+        const nb = notebook.getBoundingClientRect();
+        const tw = toggle.offsetWidth;
+        const th = toggle.offsetHeight;
+        const newLeft = Math.max(0, Math.min(origLeft + dx, nb.width  - tw));
+        const newTop  = Math.max(0, Math.min(origTop  + dy, nb.height - th));
+        toggle.style.left = newLeft + 'px';
+        toggle.style.top  = newTop  + 'px';
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      function onDragEnd(e) {
+        if (!dragging) return;
+        dragging = false;
+        const toggle = document.getElementById('tracingToolToggle');
+        if (toggle) toggle.style.cursor = 'grab';
+      }
+
+      function initDrag() {
+        const handle = document.getElementById('tracingToolHandle');
+        if (!handle) return;
+        // Convert bottom-based position to top-based for drag math
+        const toggle = document.getElementById('tracingToolToggle');
+        const notebook = getNotebook();
+        if (toggle && notebook && toggle.style.bottom) {
+          const nb = notebook.getBoundingClientRect();
+          const th = toggle.offsetHeight;
+          const bottom = parseInt(toggle.style.bottom) || 20;
+          toggle.style.top    = (nb.height - th - bottom) + 'px';
+          toggle.style.bottom = '';
+        }
+        handle.addEventListener('mousedown',  onDragStart);
+        handle.addEventListener('touchstart', onDragStart, { passive: false });
+        window.addEventListener('mousemove',  onDragMove);
+        window.addEventListener('touchmove',  onDragMove, { passive: false });
+        window.addEventListener('mouseup',    onDragEnd);
+        window.addEventListener('touchend',   onDragEnd);
+      }
+
+      // Init once tracing page opens
+      const origOpen = window.openTracingPage;
+      window.openTracingPage = function() {
+        if (origOpen) origOpen.apply(this, arguments);
+        setTimeout(initDrag, 100);
+      };
+    })();
     const WHEEL_ITEM_H = 44;
     let wheelSnapTimeout  = null;
     let wheelPendingIndex = 0;
@@ -3118,6 +3340,7 @@
         alphabetIndex = wheelPendingIndex;
         tracingWord   = ALPHABET_LIST[alphabetIndex];
         updateWheelDisplay();
+      randomTracingColor();
         drawTracingPage();
       } else {
         setTracingWordFromList(wheelPendingIndex);
@@ -3274,7 +3497,6 @@
   </style>
 
   <script>
-    // Attempt to lock orientation via Screen Orientation API (supported on Android Chrome, some iPads)
     (function() {
       function tryLock() {
         try {
@@ -3283,10 +3505,18 @@
           }
         } catch(e) {}
       }
-      // Try on load and after any user gesture (required by some browsers)
+      function checkOrientation() {
+        const overlay = document.getElementById('orientationOverlay');
+        if (!overlay) return;
+        const isPortrait = window.innerHeight > window.innerWidth;
+        overlay.style.display = isPortrait ? 'flex' : 'none';
+      }
       tryLock();
       document.addEventListener('click', tryLock, { once: true });
       document.addEventListener('touchstart', tryLock, { once: true });
+      window.addEventListener('resize', checkOrientation);
+      window.addEventListener('orientationchange', checkOrientation);
+      checkOrientation();
     })();
   </script>
 
