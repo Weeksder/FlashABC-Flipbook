@@ -2741,17 +2741,8 @@
     }
 
     function pickColorForPosition(x) {
-      // In alphabet mode use the randomly assigned colour — don't override it by position
-      if (tracingMode === 'alphabet') return;
-      if (!tracingWord) return;
-      const canvas = document.getElementById('tracingCanvas');
-      const dpr = window.devicePixelRatio || 1;
-      const W = canvas.width / dpr;
-      const marginL = 48;
-      const n = tracingWord.length;
-      const slotW = (W - marginL - 24) / Math.max(n, 1);
-      const letterIdx = Math.floor((x - marginL) / slotW);
-      tracingColorIdx = Math.max(0, Math.min(letterIdx, tracingColors.length - 1));
+      // Both alphabet and DIY use a single random colour per word — skip position-based colouring
+      return;
     }
 
     let tracingReplayMode = false;
